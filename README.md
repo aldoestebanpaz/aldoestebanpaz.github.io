@@ -1,6 +1,6 @@
 # Aldo's personal site
 
-All the posts in this site are notes and records to help me to remember steps, commands and concepts regarding multiple technologies I've learned at some point. If something here was useful for you, and you feel you can contribute with some addition or fix, do not hesitate to make a PR.
+All the posts in this site are notes and records to help me to remember steps, commands and concepts regarding multiple technologies I've learned at some point. If something here was useful for you, and you feel you can contribute with some addition or fix, please do not hesitate on submitting an issue or making a PR.
 
 ## Installation
 
