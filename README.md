@@ -50,7 +50,7 @@ gem install jekyll bundler
 
 Follow the [Creating a GitHub Pages site with Jekyll](https://docs.github.com/en/pages/setting-up-a-github-pages-site-with-jekyll/creating-a-github-pages-site-with-jekyll) guide.
 
-## Clone and use the github pages repo
+## Clone and run the site locally
 
 1. Clone the repo:
 ```sh
@@ -68,6 +68,12 @@ bundle install
 ```sh
 bundle exec jekyll serve
 ```
+
+## Drafts
+
+Drafts are posts without a date in the filename that are stored in the '_drafts' folder in the root. They're posts I'm still working on and don't want to publish yet.
+
+To preview the site with drafts, run `jekyll serve --drafts` or `jekyll build --drafts`.
 
 ## Troubleshooting
 
