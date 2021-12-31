@@ -1,3 +1,8 @@
+---
+title: "GNU Make, advanced tips and tricks"
+tags: usage make gnu-make
+---
+
 # GNU Make, advanced tips and tricks
 
 ## Debugging
@@ -48,7 +53,7 @@ or
 make -w -d -n V=1 TARGET | tee make.debug
 ```
 
-e.g. make -w -d -n V=1 pdfdocs | tee make.debug
+e.g. `make -w -d -n V=1 pdfdocs | tee make.debug`
 
 ## Code snippets
 
