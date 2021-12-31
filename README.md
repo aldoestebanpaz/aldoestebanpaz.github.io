@@ -27,7 +27,7 @@ sudo usermod -a -G rvm $USER
 source /etc/profile
 ```
 
-### Install and use Ruby uwgin RVM
+### Install and use Ruby using RVM
 
 1. Install and use a ruby version:
 ```sh
@@ -67,13 +67,22 @@ bundle install
 4. Run the Jekyll site locally:
 ```sh
 bundle exec jekyll serve
+# or
+# bundle exec jekyll serve --drafts
 ```
 
 ## Drafts
 
 Drafts are posts without a date in the filename that are stored in the '_drafts' folder in the root. They're posts I'm still working on and don't want to publish yet.
 
-To preview the site with drafts, run `jekyll serve --drafts` or `jekyll build --drafts`.
+To preview the site with drafts, run `bundle exec jekyll serve --drafts`.
+
+## Lexers for code highlighting
+
+Rouge is the syntax highlighter and the 'moniker.sublime' style was generated for using in this site.
+
+You can see the list of supported languages and lexers in [this link](https://github.com/rouge-ruby/rouge/wiki/List-of-supported-languages-and-lexers), or by running `rougify list`, whenever you need to use code blocks in your markdown files.
+
 
 ## Troubleshooting
 
@@ -88,8 +97,8 @@ bundle update github-pages
 ### Useful RVM commands
 
 - Get usage information of a RVM command: `rvm help COMMAND`.
-- List of currently installed ruby strings: `rvm list`.
-- List a partial number of valid ruby strings: `rvm list known`.
+- List currently installed ruby interpreters: `rvm list`.
+- List a partial number of valid ruby interpreters that could be installed: `rvm list known`.
 
 ## References
 

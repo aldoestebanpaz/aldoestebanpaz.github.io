@@ -9,3 +9,7 @@ theme: jekyll-theme-midnight
 paginate: 5
 plugins:
   - jekyll-feed
+markdown: kramdown
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge

@@ -3,41 +3,84 @@
 
 @import "jekyll-theme-midnight";
 
-$base-font-size: 18px;
+$base-font-size: 16px;
+$color-canvas-default: #0d1117;
+$color-border-muted: #21262d;
+$color-fg-default: #c9d1d9;
 $max-width: 1200px;
+
+* {
+  box-sizing: border-box;
+}
 
 body {
   font-size: $base-font-size;
+  color: $color-fg-default;
+  line-height: 1.5;
+  word-wrap: break-word;
+  background: $color-canvas-default;
+  font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji";
 }
 
-h1 {
-  margin: 0 0 40px;
-  font-size: 30px;
-}
+article {
+  h1, h2, h3, h4, h5, h6, p {
+    color: $color-fg-default;
+  }
 
-h2 {
-  font-size: 26px;
-}
+  h1 {
+    padding-bottom: .3em;
+    font-size: 2em;
+    border-bottom: 1px solid $color-border-muted;
 
-h3 {
-  margin: 60px 0 0;
-  font-size: 24px;
-}
+    margin-bottom: 16px;
+    font-weight: 600;
+    line-height: 1.25;
+  }
 
-h4 {
-  margin: 15px 0 0;
-  font-size: 20px;
-}
+  h2 {
+    padding-bottom: .3em;
+    font-size: 1.5em;
+    border-bottom: 1px solid $color-border-muted;
 
-h5, h6 {
-  font-size: $base-font-size;
-}
+    margin-top: 24px;
+    margin-bottom: 16px;
+    font-weight: 600;
+    line-height: 1.25;
+  }
 
-p {
-  margin: 0 0 5px;
+  h3 {
+    font-size: 1.25em;
+
+    margin-top: 24px;
+    margin-bottom: 16px;
+    font-weight: 600;
+    line-height: 1.25;
+  }
+
+  h4 {
+    margin: 15px 0 0;
+    font-size: 20px;
+  }
+
+  h5, h6 {
+    font-size: $base-font-size;
+  }
+
+  p {
+    margin-bottom: 16px;
+  }
+
+  ul {
+    list-style-image: none;
+  }
 
   a {
-    color: #d4c25c;
+    color: #58a6ff;
+
+    &:hover {
+      color: #58a6ff;
+      text-decoration: underline;
+    }
   }
 }
 
