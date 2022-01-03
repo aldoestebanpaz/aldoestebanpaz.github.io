@@ -6,7 +6,7 @@
 
 The following code parse an ISO 8601 date and time and shows the equivalent date and time for the different timezones:
 
-```ps1
+```powershell
 # usage:
 #     powershell -executionpolicy ByPass -File .\timezone_converter.ps1 -datetime <ISO datetime>
 #     example:
@@ -53,7 +53,7 @@ Suppose you have a JSON file list.json with the following format:
 
 The following script prints the content of the item for the index number passed as a parameter:
 
-```ps1
+```powershell
 # usage:
 #     powershell -executionpolicy ByPass -File .\show_item.ps1 -index <INDEX>
 # example:
@@ -72,7 +72,7 @@ $json.list_items[$index]
 
 The following script will sort the objects inside list_items and will save the result into sorted_list.json:
 
-```ps1
+```powershell
 # usage:
 #     powershell -executionpolicy ByPass -File .\sort.ps1
 # example:
@@ -91,7 +91,7 @@ $json | ConvertTo-Json | Out-File '.\sorted_list.json'
 
 The following script will extract a list from list_items given an index as the starting point and will save the result into sorted_list.json:
 
-```ps1
+```powershell
 # usage:
 #     powershell -executionpolicy ByPass -File .\extract_list.ps1 -from <INDEX>
 # example:
