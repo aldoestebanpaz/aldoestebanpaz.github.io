@@ -5,6 +5,32 @@ tags: maven troubleshooting
 
 # Maven commands for analysis and troubleshooting
 
+## A basic exlanation about how to call plugin goals from command line
+
+'Plugin Prefix Resolution' is a feature which enables to invoke goals of Maven plugins in the terminal by using its prefix (e.g. `mvn prefix:goal`) instead of using the fully-featured form `mvn groupId:artifactId:version:goal` or `mvn groupId:artifactId:goal`.
+
+By default, Maven will make a guess at the plugin-prefix to be used, by removing any instances of "maven" or "plugin" surrounded by hyphens in the plugin's artifact ID. The conventional artifact ID formats to use are:
+
+- `maven-${prefix}-plugin` - for official plugins maintained by the Apache Maven team itself (you must NOT use this naming pattern for your plugins).
+- `${prefix}-maven-plugin` - for plugins from other sources
+
+If a plugin artifactId fits this pattern, Maven will automatically map your plugin to the correct prefix in the metadata stored within the specified plugin groupId path on the repository.
+
+By default, if not groupId is specified in the command, in the pom.xml file, or in a Maven settings file (per-user: `${user.home}/.m2/settings.xml`; global: `${maven.home}/conf/settings.xml`), Maven will search the groupId 'org.apache.maven.plugins' for prefix-to-artifactId mappings for the plugins it needs to execute the command.
+
+Examples:
+
+- When you directly invoke `mvn clean`, resolves the 'clean' plugin prefix to the 'maven-clean-plugin' artifactId, and
+it resolves to the full name 'org.apache.maven.plugins:maven-clean-plugin:clean'.
+
+- Spring Boot projects by default includes the 'org.springframework.boot:spring-boot-starter-parent' parent POM and the
+'org.springframework.boot:spring-boot-maven-plugin' plugin in the pom.xml file. Having that plugin specified in the POM
+file, you can make calls like `mvn spring-boot:run` for running the application, `mvn spring-boot:help -Ddetail=true -Dgoal=<goal-name>` to display help information, or create the .jar file with the standard `mvn package` that implicitly calls the 'spring-boot:repackage' because it is already configured to be executed with the 'package' phase in the parent POM. Reference: https://docs.spring.io/spring-boot/docs/current/maven-plugin/reference/htmlsingle/#goals.
+
+- Without necessarily having anything configured in pom.xml, `mvn io.github.git-commit-id:git-commit-id-maven-plugin:revision` generates the priperties file 'target\classes\git.properties' with values from the git repository that could be useful in pom.xml for other configurations. Reference: https://github.com/git-commit-id/git-commit-id-maven-plugin.
+
+Reference: https://maven.apache.org/guides/introduction/introduction-to-plugin-prefix-mapping.html
+
 ## Show system properties and environment variables
 
 ```sh
@@ -21,6 +47,8 @@ With the following command you can evaluate the value of expressions you use ins
 cd myproject
 
 mvn help:evaluate
+# using the full name:
+# mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate
 ```
 
 Reference: https://maven.apache.org/plugins/maven-help-plugin/evaluate-mojo.html
@@ -88,7 +116,7 @@ Reference: https://maven.apache.org/plugins/maven-dependency-plugin/tree-mojo.ht
 This is helful to answer the following questions:
 - What is my inheritance chain of parent POMs?
 
-This may be useful too in a continuous integration system where you want to know all parent poms of the project.
+This may be useful too in a continuous integration system where you want to know all parent POMs of the project.
 
 ```sh
 cd myproject
@@ -140,7 +168,7 @@ In the following examples, you have to specify a Maven Plugin to describe in one
 - groupId:artifactId, i.e. 'org.apache.maven.plugins:maven-help-plugin'.
 - groupId:artifactId:version, i.e. 'org.apache.maven.plugins:maven-help-plugin:2.0'.
 
-The following command shows basic information about a aven plugin along a description of the goals inside:
+The following command shows basic information about a Maven plugin along a description of the goals inside:
 
 ```sh
 cd myproject
