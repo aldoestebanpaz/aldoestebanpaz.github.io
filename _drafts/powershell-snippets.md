@@ -1,4 +1,19 @@
-# Some Poweshell snippets
+# Some Poweshell usage examples
+
+Getting powershell version
+`$PSVersionTable`
+also
+`Get-Host`
+
+Generate GUID
+`[guid]::NewGuid()`
+
+Get modules that have been imported into the current session
+`Get-Module`
+
+List the modules that are available to be imported from the paths specified in the PSModulePath environment variable ($env:PSModulePath)
+`Get-Module -ListAvailable`
+
 
 ## Date, time and an timezone
 
