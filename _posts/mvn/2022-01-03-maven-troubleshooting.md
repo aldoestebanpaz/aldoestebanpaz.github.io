@@ -31,6 +31,47 @@ file, you can make calls like `mvn spring-boot:run` for running the application,
 
 Reference: https://maven.apache.org/guides/introduction/introduction-to-plugin-prefix-mapping.html
 
+## Create a project from project templates (archetypes)
+
+An archetype is a Maven project templating toolkit that allows to create and initialize a project form a template.
+
+You can search archetype templates by running `mvn archetype:generate` and interacting with the prompt.
+
+Reference:
+- https://maven.apache.org/archetype/maven-archetype-plugin/
+- https://maven.apache.org/archetype/index.html
+
+### Creating a simple JAR project
+
+The following creates a basic project using the 'maven-archetype-quickstart' and initializes the pom.xml file with the values 'com.aldo.core.tools' for groupId and 'javatool' for artifactId.
+
+```sh
+mvn archetype:generate -DarchetypeGroupId=org.apache.maven.archetypes -DarchetypeArtifactId=maven-archetype-quickstart -DgroupId=com.aldo.core.tools -DartifactId=javatool -DinteractiveMode=false
+```
+
+This project can be compiled using `mvn clean package` and you can see the content of the archive running for example `jar -tvf target/javatool.jar`, but to be able to execute the program you will need to specify the classpath and the mainclass with a command like `java -cp target/javatool.jar <file-path-to-dependencies> com.aldo.core.tools.javatool.App <args>`.
+
+To be able to use a shorter command like `java -jar target/javatool.jar <args>` for execution the project, you need to include a manifest file and include all the third-party dependencies inside the same JAR. This type of archive with every information and dependencies inside is commonly known as an 'assembly'.
+
+### Creating assemblies
+
+The 'maven-assembly-plugin' plugin allows you to combine project output into a single distributable archive that also contains dependencies, modules, site documentation, and other files.
+
+A framework that creates this type of self-contained JARs is Spring Boot. By default, Spring Boot repackages your JAR into an executable JAR, and it does that by putting all of your classes inside BOOT-INF/classes, and all of the dependent libraries inside BOOT-INF/lib.
+
+Finally I've found also an archetype that includes this plugin in the template and you can create it with:
+
+```sh
+mvn archetype:generate -DarchetypeGroupId=com.rudolfschmidt -DarchetypeArtifactId=javase8-assembly-archetype
+```
+
+and compile it with `mvn clen package`.
+
+References:
+- https://maven.apache.org/plugins/maven-assembly-plugin/
+- https://github.com/rudolfschmidt/javase8-assembly-archetype
+- https://github.com/netyjq/spring-boot-archetype
+
 ## Show system properties and environment variables
 
 ```sh
