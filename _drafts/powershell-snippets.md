@@ -1,21 +1,69 @@
-# Some Poweshell usage examples
+# Some Poweshell useful commands
 
-Getting powershell version
+## Basic commands
+
+### grep equivalent
+
+Select-String or sls is the command that allows filteting. e.g.:
+
+```powershell
+git help -a | sls credential-
+```
+
+## Analysis
+
+### Getting information about the Shell
+
+```powershell
+# Getting powershell version
 `$PSVersionTable`
-also
+# also
 `Get-Host`
+```
 
-Generate GUID
-`[guid]::NewGuid()`
+### Get command behind an alias
 
-Get modules that have been imported into the current session
-`Get-Module`
+The following are some examples of using Get-Alias:
 
-List the modules that are available to be imported from the paths specified in the PSModulePath environment variable ($env:PSModulePath)
-`Get-Module -ListAvailable`
+```powershell
+# sls -> Select-String
+Get-Alias -Name sls
 
+# iwr -> Invoke-WebRequest
+Get-Alias -Name iwr
+```
+
+### Getting information about Modules
+
+```powershell
+# List the modules that have been imported into the current session
+Get-Module
+
+# List the modules that are available to be imported from the paths specified in the PSModulePath environment variable ($env:PSModulePath)
+Get-Module -ListAvailable
+
+# Get commands in the module
+Get-Command -Module oh-my-posh
+```
+
+## Tools for development
+
+### Generate GUID
+
+```powershell
+[guid]::NewGuid()
+```
 
 ## Date, time and an timezone
+
+### Show all timezones
+
+```powershell
+$timezones = [System.TimeZoneInfo]::GetSystemTimeZones()
+foreach ($tz in $timezones.GetEnumerator()) {
+    Write-Host "Offset: $($tz.BaseUtcOffset); Id: $($tz.Id); StandardName: $($tz.StandardName)"
+}
+```
 
 ### Show a date and time in different timezones
 
