@@ -244,6 +244,10 @@ For specific documentation about options configured with "set", you have to use 
 
 ## Common tasks
 
+### Print current working directory
+
+Simple type `:pwd`.
+
 ### Copy a selection to the clipboard
 
 For copying a selection to the clipboard register you type `"*y`.
@@ -251,6 +255,23 @@ For copying a selection to the clipboard register you type `"*y`.
 ### Paste from the clipboard
 
 To put somthing from the clipboard you type `"*p`.
+
+### Cut and paste selection
+
+NOTE: `d` stands for delete in Vim, which in other editors is usually called 'cut'.
+
+1. Position the cursor where you want to begin cutting.
+2. Press `v` to select characters, or uppercase `V` to select whole lines, or `CTRL-Q` (don't try CTRL-V because it could be mapped for pasting, see `:help CTRL-V-alternative`) to select rectangular blocks.
+3. Move the cursor to the end of what you want to cut.
+4. Press `d` to cut (or y to copy).
+5. Move to where you would like to paste.
+6. Press `p` to paste after the cursor.
+
+### Copy and paste
+
+NOTE: `y` stands for yank in Vim, which in other editors is usually called 'copy'.
+
+Is performed with the same steps above except for step 4 where you would press `y` instead of `d`.
 
 ## Analysis and troubleshooting
 
@@ -261,6 +282,10 @@ Simply run `:echo foo`.
 ### Inspect the current value of an option
 
 Just add a question mark in the ond of the 'set' command, for example `set number?` shows if line numbers are enabled.
+
+### Inspect the current value of a command-line command
+
+Simple run, for example for `:MyCommand` definition, the command `:command MyCommand`.
 
 ### List features supported by my current installation
 
