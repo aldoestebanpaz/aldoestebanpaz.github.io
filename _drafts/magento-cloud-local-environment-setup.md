@@ -39,15 +39,29 @@ git config --global user.email "you@example.com"
 git config --global user.name "Your Name"
 ```
 
-**Install php**
+**Install required tools**
 
 ```sh
-sudo yum -y install http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 sudo yum -y update
-# ...
-```
 
-TODO: more commands and steps required here. I forgot the commands I've executed in this part.
+sudo yum install curl
+sudo yum install ca-certificates
+sudo update-ca-trust enable
+sudo update-ca-trust extract
+
+sudo yum -y install http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+sudo yum -y install http://rpms.famillecollet.com/enterprise/remi-release-7.rpm
+sudo yum-config-manager --enable epel
+sudo yum-config-manager --enable remi
+
+sudo yum -y update
+
+sudo yum -y install yum-utils net-tools lsof unzip git
+
+curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/bin --filename=composer
+sudo composer self-update --1
+composer config --global process-timeout 300
+```
 
 ## Create and switch to the Magento user (aka Magento file system owner)
 
@@ -127,13 +141,21 @@ Follow one of these two alternatives.
 
 ### Option 1: Create a project
 
-TODO: more commands and steps required here. I forgot the commands I've executed in this part.
+TODO: steps required here.
 
 ### Option 2: Download an existing project
+
+First list them to find the ID if the one that you want to download:
+
+```sh
+# list projects
+magento-cloud projects
+```
 
 Like git-clone without specifying a directory, the command below will clone eveything inside a directory with the name of the project:
 
 ```sh
+# download a project
 magento-cloud get <project-id> [<dir-to-clone-to>]
 ```
 
@@ -254,9 +276,12 @@ echo "PWD=$PWD" > .env
 
 **Destroy already existing containers first**
 
-If the containers are already running, you need to destry them before to proceed.
+If the containers are already running, you need to destroy them before to proceed.
 
-TODO: I forgot the commands I've executed in this part.
+```sh
+# Stop and remove Docker environment, removes volumes too
+docker-compose down -v
+```
 
 Reference: https://devdocs.magento.com/cloud/docker/docker-quick-reference.html
 
@@ -277,16 +302,15 @@ Reference:
 ```sh
 # Option 1: Build the application using "Magento Cloud Docker CLI"
 # check: sudo ./bin/magento-docker ece-build
-# Option 2: uild the environment using "Docker Compose"
+# Option 2: Build the environment using "Docker Compose"
 sudo docker-compose run --rm build cloud-build
 ```
 
 Reference: https://devdocs.magento.com/cloud/docker/docker-quick-reference.html
 
-
 ## (Optional) Redeploy
 
-These commands shows a exceptional case where could be some conflicting modules in the first deployment. I this case I will be re-deploying two times just to include the modules in the required order:
+These commands shows an exceptional case where could exist some conflicting modules in the first deployment. I this case I will be re-deploying two times just to include the modules in the required order:
 
 ```sh
 # check if a required module <modulename> is enabled
@@ -371,13 +395,13 @@ Username: admin
 Password: 123123q
 ```
 
-## Optional configure a second store
+## (Optional) configure a second store and a second website
 
 ### Configure routes for separate domains
 
 Modify the routes.yaml file: `vim .magento/routes.yaml`.
 
-Previous:
+Before:
 
 ```yml
 # The routes of the project.
@@ -393,7 +417,7 @@ Previous:
     upstream: "mymagento:http"
 ```
 
-Actual:
+After:
 
 ```yml
 # The routes of the project.
@@ -404,7 +428,13 @@ Actual:
     type: upstream
     upstream: "mymagento:http"
 
+# for testing a different store, and his own store view, in the same Main Website.
 "http://store2.{default}/":
+    type: upstream
+    upstream: "mymagento:http"
+
+# for testing a different website, with his own store and store view.
+"http://website2.{default}/":
     type: upstream
     upstream: "mymagento:http"
 
@@ -421,7 +451,8 @@ Instead of configuring an NGINX virtual host, pass the MAGE_RUN_CODE and MAGE_RU
 vim magento-vars.php
 ```
 
-Previous
+Before:
+
 ```php
 <?php
 /**
@@ -451,7 +482,8 @@ function isHttpHost(string $host)
 }
 ```
 
-Actual
+After:
+
 ```php
 <?php
 // enable, adjust and copy this code for each store you run
@@ -479,16 +511,22 @@ function isHttpHost($host)
 
 
 if (isHttpHost("store2.")) {
+    // If MAGE_RUN_TYPE" == "store" then MAGE_RUN_CODE must point to the code of a store view.
     $_SERVER["MAGE_RUN_CODE"] = "store2_view";
     $_SERVER["MAGE_RUN_TYPE"] = "store";
+} elseif (isHttpHost("website2.")) {
+    // If MAGE_RUN_TYPE" == "website" then MAGE_RUN_CODE must point to the code of a website.
+    $_SERVER["MAGE_RUN_CODE"] = "base2";
+    $_SERVER["MAGE_RUN_TYPE"] = "website";
 }
 ```
 
-### Create the store and store view configurations
+### Configurations for Store2
 
+#### Create the store and store view configurations for "store2"
 
-* Go to Admin dashboard (http://localhost:8080/admin)
-* Go to Stores > Settings > All Stores
+- Go to Admin dashboard (http://localhost:8080/admin)
+- Go to Stores > Settings > All Stores
 
 Create an Store with the following information.
 ```
@@ -517,7 +555,7 @@ Applying this configuration, the table of Stores show have 2 rows. The new row s
 | Main Website | Store 2        | Store 2 View        |
 | (Code: base) | (Code: store2) | (Code: store2_view) |
 
-### Change style of the two stores
+#### Change style of the two stores
 
 This change is just to show a different color in the header section of each store, just to keep the eye aware of the store being used.
 
@@ -544,11 +582,15 @@ Select edit for row with "Store 2 View" and append the following in the end of t
 </style>
 ```
 
-### Add the store code to the base URL
+#### Add the store code to the base URL
+
+Magento gives you the option to add the store code to the site base URL, which simplifies the process of setting up multiple stores. Using this option, you do not have to create directories on the Magento file system to store index.php and .htaccess.
+
+This prevents index.php and .htaccess from getting out of sync with the Magento codebase in future upgrades.
 
 * Go to Admin dashboard (http://localhost:8080/admin)
 * Go to Stores > Settings > Configuration > General > Web
-* Store View (Scope) list at the top of the page, click "Default Config"
+* Switch the Scope (at the top of the page) to "Default Config"
 * Expand "Url Options"
 * Clear the Use system value checkbox next to "Add Store Code to Urls"
 * Change "Add Store Code to Urls" to "Yes"
@@ -559,19 +601,30 @@ sudo docker-compose run --rm deploy magento-command indexer:reindex
 sudo docker-compose run --rm deploy magento-command cache:clean
 ```
 
-### Change the default store view base URL (youcould skip this step if you see issues)
+#### Change the base URL of the default store
 
 * Go to Admin dashboard (http://localhost:8080/admin)
 * Go to Stores > Settings > Configuration > General > Web
-* Store View (Scope) list at the top of the page, click "Default Config"
+* Switch the Scope (at the top of the page) to "Default Config"
 * Expand "Base URLs"
 * Clear the Use system value checkbox next to "Base URLs"
 * Enter the http://localhost:8080 URL in the Base URL and Base Link URL fields.
 * Repeat the previous step in the Base URLs (Secure) section.
-* NOTE: If you're setting up a base URL for Cloud for Adobe Commerce (in the Cloud instance), you must replace the first period with three dashes. For example, if your base URL is french.branch-xXxXxXx-xXxXxXxXxXxXx.us.magentosite.cloud, enter http://french—branch-xXxXxXx-xXxXxXxXxXxXx.us.magentosite.cloud.
 * Save changes.
 
-### Add second store domain to your hosts file
+#### Change the base URL for "Store 2 View"
+
+* Go to Admin dashboard (http://localhost:8080/admin)
+* Go to Stores > Settings > Configuration > General > Web
+* Switch the Scope (at the top of the page) to "Store 2 View"
+* Expand "Base URLs"
+* Clear the Use system value checkbox next to "Base URL"
+* Enter the http://store2.localhost:8080/ URL in the Base URL and Base Link URL fields.
+* Repeat the previous step in the Base URLs (Secure) section, but replace http by https.
+* NOTE: I didn't needed it, but you could check if it works. If you're setting up a base URL for Cloud for Adobe Commerce (in the Cloud instance), you must replace the first period with three dashes. For example, if your base URL is french.branch-xXxXxXx-xXxXxXxXxXxXx.us.magentosite.cloud, enter http://french---branch-xXxXxXx-xXxXxXxXxXxXx.us.magentosite.cloud.
+* Save changes.
+
+#### Add second store subdomain to your hosts file
 
 Your hosts file should have the following entries to be able to point to the two stores (default and second one).
 
@@ -580,9 +633,74 @@ localhost   localhost
 localhost   store2.localhost
 ```
 
-### Check second store access
+#### Check access to the second store
 
 Now you should be able to access to htttp://store2.localhost:8080/
+
+### Configurations for website2
+#### Create the websiten store and store view configurations for "website2"
+
+- Go to Admin dashboard (http://localhost:8080/admin)
+- Go to Stores > Settings > All Stores
+
+Create a Website with the following information.
+```
+Name: Website2
+Code: base2
+Sort Order: 0
+Default Store: Website2 Store
+Set as default: false
+```
+
+Create a Store with the following information.
+```
+Web Site: Website2
+Name: Website2 Store
+Code: website2_store
+Root Category: Default Category
+Default Store View: Website2 Default Store View
+```
+
+Create a Store View with the following information.
+```
+Store: Website2 Store
+Name: Website2 Default Store View
+Code: website2_default
+Status: Enabled
+Sort Order: 0
+```
+
+Applying this configuration, the table of Stores show have 2 rows. The new row should have this format:
+
+|               |                        |                             |
+|---------------|------------------------|-----------------------------|
+| Website2      | Website2 Store         | Website2 Default Store View |
+| (Code: base2) | (Code: website2_store) | (Code: website2_default)    |
+
+#### Change the base URL for Website2
+
+* Go to Admin dashboard (http://localhost:8080/admin)
+* Go to Stores > Settings > Configuration > General > Web
+* Switch the Scope (at the top of the page) to "Website2"
+* Expand "Base URLs"
+* Clear the Use system value checkbox next to "Base URL"
+* Enter the http://website2.localhost:8080/ URL in the Base URL and Base Link URL fields.
+* Repeat the previous step in the Base URLs (Secure) section, but replace http by https.
+* NOTE: I didn't needed it, but you could check if it works. If you're setting up a base URL for Cloud for Adobe Commerce (in the Cloud instance), you must replace the first period with three dashes. For example, if your base URL is french.branch-xXxXxXx-xXxXxXxXxXxXx.us.magentosite.cloud, enter http://french---branch-xXxXxXx-xXxXxXxXxXxXx.us.magentosite.cloud.
+* Save changes.
+
+#### Add website2 subdomain to your hosts file
+
+Your hosts file should have the following entries to be able to point to the two stores (default and second one).
+
+```
+localhost   localhost
+localhost   website2.localhost
+```
+
+#### Check access to the second website
+
+Now you should be able to access to htttp://website2.localhost:8080/
 
 ## Analysis and troubleshooting
 
