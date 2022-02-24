@@ -289,6 +289,7 @@ Reference: https://devdocs.magento.com/cloud/docker/docker-quick-reference.html
 
 ```sh
 sudo docker-compose up -d
+# or sudo ./bin/magento-docker up
 ```
 
 **(Optional) Just build the environment**
@@ -559,8 +560,8 @@ Applying this configuration, the table of Stores show have 2 rows. The new row s
 
 This change is just to show a different color in the header section of each store, just to keep the eye aware of the store being used.
 
-* Go to Admin dashboard (http://localhost:8080/admin)
-* Go to Content > Design > Configuration
+- Go to Admin dashboard (http://localhost:8080/admin)
+- Go to Content > Design > Configuration
 
 Select edit for row with "Default Store View" and append the following in the end of the content of the "HTML Head > Scripts and Style Sheets" section.
 
@@ -588,13 +589,13 @@ Magento gives you the option to add the store code to the site base URL, which s
 
 This prevents index.php and .htaccess from getting out of sync with the Magento codebase in future upgrades.
 
-* Go to Admin dashboard (http://localhost:8080/admin)
-* Go to Stores > Settings > Configuration > General > Web
-* Switch the Scope (at the top of the page) to "Default Config"
-* Expand "Url Options"
-* Clear the Use system value checkbox next to "Add Store Code to Urls"
-* Change "Add Store Code to Urls" to "Yes"
-* Save changes and clear cache
+1. Go to Admin dashboard (http://localhost:8080/admin)
+2. Go to Stores > Settings > Configuration > General > Web
+3. Switch the Scope (at the top of the page) to "Default Config"
+4. Expand "Url Options"
+5. Clear the Use system value checkbox next to "Add Store Code to Urls"
+6. Change "Add Store Code to Urls" to "Yes"
+7. Save changes and clear cache
 
 ```sh
 sudo docker-compose run --rm deploy magento-command indexer:reindex
@@ -603,26 +604,26 @@ sudo docker-compose run --rm deploy magento-command cache:clean
 
 #### Change the base URL of the default store
 
-* Go to Admin dashboard (http://localhost:8080/admin)
-* Go to Stores > Settings > Configuration > General > Web
-* Switch the Scope (at the top of the page) to "Default Config"
-* Expand "Base URLs"
-* Clear the Use system value checkbox next to "Base URLs"
-* Enter the http://localhost:8080 URL in the Base URL and Base Link URL fields.
-* Repeat the previous step in the Base URLs (Secure) section.
-* Save changes.
+1. Go to Admin dashboard (http://localhost:8080/admin)
+2. Go to Stores > Settings > Configuration > General > Web
+3. Switch the Scope (at the top of the page) to "Default Config"
+4. Expand "Base URLs"
+5. Clear the Use system value checkbox next to "Base URLs"
+6. Enter the http://localhost:8080 URL in the Base URL and Base Link URL fields.
+7. Repeat the previous step in the Base URLs (Secure) section.
+8. Save changes.
 
 #### Change the base URL for "Store 2 View"
 
-* Go to Admin dashboard (http://localhost:8080/admin)
-* Go to Stores > Settings > Configuration > General > Web
-* Switch the Scope (at the top of the page) to "Store 2 View"
-* Expand "Base URLs"
-* Clear the Use system value checkbox next to "Base URL"
-* Enter the http://store2.localhost:8080/ URL in the Base URL and Base Link URL fields.
-* Repeat the previous step in the Base URLs (Secure) section, but replace http by https.
-* NOTE: I didn't needed it, but you could check if it works. If you're setting up a base URL for Cloud for Adobe Commerce (in the Cloud instance), you must replace the first period with three dashes. For example, if your base URL is french.branch-xXxXxXx-xXxXxXxXxXxXx.us.magentosite.cloud, enter http://french---branch-xXxXxXx-xXxXxXxXxXxXx.us.magentosite.cloud.
-* Save changes.
+1. Go to Admin dashboard (http://localhost:8080/admin)
+2. Go to Stores > Settings > Configuration > General > Web
+3. Switch the Scope (at the top of the page) to "Store 2 View"
+4. Expand "Base URLs"
+5. Clear the Use system value checkbox next to "Base URL"
+6. Enter the http://store2.localhost:8080/ URL in the Base URL and Base Link URL fields.
+7. Repeat the previous step in the Base URLs (Secure) section, but replace http by https.
+8. NOTE: I didn't needed it, but you could check if it works. If you're setting up a base URL for Cloud for Adobe Commerce (in the Cloud instance), you must replace the first period with three dashes. For example, if your base URL is french.branch-xXxXxXx-xXxXxXxXxXxXx.us.magentosite.cloud, enter http://french---branch-xXxXxXx-xXxXxXxXxXxXx.us.magentosite.cloud.
+9. Save changes.
 
 #### Add second store subdomain to your hosts file
 
@@ -679,15 +680,15 @@ Applying this configuration, the table of Stores show have 2 rows. The new row s
 
 #### Change the base URL for Website2
 
-* Go to Admin dashboard (http://localhost:8080/admin)
-* Go to Stores > Settings > Configuration > General > Web
-* Switch the Scope (at the top of the page) to "Website2"
-* Expand "Base URLs"
-* Clear the Use system value checkbox next to "Base URL"
-* Enter the http://website2.localhost:8080/ URL in the Base URL and Base Link URL fields.
-* Repeat the previous step in the Base URLs (Secure) section, but replace http by https.
-* NOTE: I didn't needed it, but you could check if it works. If you're setting up a base URL for Cloud for Adobe Commerce (in the Cloud instance), you must replace the first period with three dashes. For example, if your base URL is french.branch-xXxXxXx-xXxXxXxXxXxXx.us.magentosite.cloud, enter http://french---branch-xXxXxXx-xXxXxXxXxXxXx.us.magentosite.cloud.
-* Save changes.
+1. Go to Admin dashboard (http://localhost:8080/admin)
+2. Go to Stores > Settings > Configuration > General > Web
+3. Switch the Scope (at the top of the page) to "Website2"
+4. Expand "Base URLs"
+5. Clear the Use system value checkbox next to "Base URL"
+6. Enter the http://website2.localhost:8080/ URL in the Base URL and Base Link URL fields.
+7. Repeat the previous step in the Base URLs (Secure) section, but replace http by https.
+8. NOTE: I didn't needed it, but you could check if it works. If you're setting up a base URL for Cloud for Adobe Commerce (in the Cloud instance), you must replace the first period with three dashes. For example, if your base URL is french.branch-xXxXxXx-xXxXxXxXxXxXx.us.magentosite.cloud, enter http://french---branch-xXxXxXx-xXxXxXxXxXxXx.us.magentosite.cloud.
+9. Save changes.
 
 #### Add website2 subdomain to your hosts file
 
@@ -964,6 +965,19 @@ First move to the project directory: `cd <project-dir>`.
 ./vendor/bin/ece-tools cloud:config:validate --help
 ./vendor/bin/ece-docker list
 ./vendor/bin/ece-docker build:compose --help
+```
+
+### Update public and private keys needed for Magento Cloud instances
+
+```sh
+# Replace username and password with valid keys
+MAGENTO_REPO_PUBLIC_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+MAGENTO_REPO_PRIVATE_KEY=yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy
+echo -e "{ \"http-basic\": { \"repo.magento.com\": { \"username\": \"$MAGENTO_REPO_PUBLIC_KEY\", \"password\": \"$MAGENTO_REPO_PRIVATE_KEY\" } } }" > auth.json
+git add .
+git commit --author="Name <email>" -m "whatever"
+# e.g. git commit --author="Aldo Paz <aldo.paz@noemail.com>" -m "whatever"
+magento-cloud push
 ```
 
 ## Reference links

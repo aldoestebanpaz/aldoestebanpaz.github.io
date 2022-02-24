@@ -85,6 +85,20 @@ php magento setup:install \
   --session-save=files \
   --cleanup-database
 
+# Add to install sample data
+#   --use-sample-data
+
+# Add for configure secure URL
+#   --base-url-secure=https://magento.local/ \
+#   --use-secure-admin=0 \
+
+# Add these parameters for Magento 4.x
+#   --search-engine=elasticsearch7 \
+#   --elasticsearch-host=localhost \
+#   --elasticsearch-port=9200
+
+COMPOSER_MEMORY_LIMIT=3G php magento sampledata:deploy
+
 php magento setup:upgrade
 php magento setup:di:compile
 php magento setup:static:deploy -f
@@ -165,6 +179,20 @@ php magento setup:install \
   --admin-use-security-key=0 \
   --session-save=files \
   --cleanup-database
+
+# Add to install sample data
+#   --use-sample-data
+
+# Add for configure secure URL
+#   --base-url-secure=https://magento.local/ \
+#   --use-secure-admin=0 \
+
+# Add these parameters for Magento 4.x
+#   --search-engine=elasticsearch7 \
+#   --elasticsearch-host=localhost \
+#   --elasticsearch-port=9200
+
+COMPOSER_MEMORY_LIMIT=3G php magento sampledata:deploy
 
 php magento setup:upgrade
 php magento setup:di:compile
@@ -360,8 +388,8 @@ Applying this configuration, the table of Stores show have 2 rows. The new row s
 
 This change is just to show a different color in the header section of each store, just to keep the eye aware of the store being used.
 
-* Go to Admin dashboard (http://magento.local/admin)
-* Go to Content > Design > Configuration
+- Go to Admin dashboard (http://magento.local/admin)
+- Go to Content > Design > Configuration
 
 Select edit for row with "Default Store View" and append the following in the end of the content of the "HTML Head > Scripts and Style Sheets" section.
 
@@ -389,13 +417,13 @@ Magento gives you the option to add the store code to the site base URL, which s
 
 This prevents index.php and .htaccess from getting out of sync with the Magento codebase in future upgrades.
 
-* Go to Admin dashboard (http://magento.local/admin)
-* Go to Stores > Settings > Configuration > General > Web
-* Switch the Scope (at the top of the page) to "Default Config"
-* Expand "Url Options"
-* Clear the Use system value checkbox next to "Add Store Code to Urls"
-* Change "Add Store Code to Urls" to "Yes"
-* Save changes and clear cache
+1. Go to Admin dashboard (http://magento.local/admin)
+2. Go to Stores > Settings > Configuration > General > Web
+3. Switch the Scope (at the top of the page) to "Default Config"
+4. Expand "Url Options"
+5. Clear the Use system value checkbox next to "Add Store Code to Urls"
+6. Change "Add Store Code to Urls" to "Yes"
+7. Save changes and clear cache
 
 ```sh
 sudo docker-compose run --rm deploy magento-command indexer:reindex
@@ -404,35 +432,26 @@ sudo docker-compose run --rm deploy magento-command cache:clean
 
 #### Change the base URL of the default store
 
-* Go to Admin dashboard (http://magento.local/admin)
-* Go to Stores > Settings > Configuration > General > Web
-* Switch the Scope (at the top of the page) to "Default Config"
-* Expand "Base URLs"
-* Clear the Use system value checkbox next to "Base URLs"
-* Enter the http://magento.local URL in the Base URL and Base Link URL fields.
-* Repeat the previous step in the Base URLs (Secure) section.
-* Save changes.
+1. Go to Admin dashboard (http://magento.local/admin)
+2. Go to Stores > Settings > Configuration > General > Web
+3. Switch the Scope (at the top of the page) to "Default Config"
+4. Expand "Base URLs"
+5. Clear the Use system value checkbox next to "Base URLs"
+6. Enter the http://magento.local URL in the Base URL and Base Link URL fields.
+7. Repeat the previous step in the Base URLs (Secure) section.
+8. Save changes.
 
 #### Change the base URL for "Store 2 View"
 
-* Go to Admin dashboard (http://magento.local/admin)
-* Go to Stores > Settings > Configuration > General > Web
-* Switch the Scope (at the top of the page) to "Store 2 View"
-* Expand "Base URLs"
-* Clear the Use system value checkbox next to "Base URL"
-* Enter the http://store2.magento.local/ URL in the Base URL and Base Link URL fields.
-* Repeat the previous step in the Base URLs (Secure) section, but replace http by https.
-* NOTE: I didn't needed it, but you could check if it works. If you're setting up a base URL for Cloud for Adobe Commerce (in the Cloud instance), you must replace the first period with three dashes. For example, if your base URL is french.branch-xXxXxXx-xXxXxXxXxXxXx.us.magentosite.cloud, enter http://french---branch-xXxXxXx-xXxXxXxXxXxXx.us.magentosite.cloud.
-* Save changes.
-
-#### Add second store subdomain to your hosts file
-
-Your hosts file should have the following entries to be able to point to the two stores (default and second one).
-
-```
-localhost   localhost
-localhost   store2.localhost
-```
+1. Go to Admin dashboard (http://magento.local/admin)
+2. Go to Stores > Settings > Configuration > General > Web
+3. Switch the Scope (at the top of the page) to "Store 2 View"
+4. Expand "Base URLs"
+5. Clear the Use system value checkbox next to "Base URL"
+6. Enter the http://store2.magento.local/ URL in the Base URL and Base Link URL fields.
+7. Repeat the previous step in the Base URLs (Secure) section, but replace http by https.
+8. NOTE: I didn't needed it, but you could check if it works. If you're setting up a base URL for Cloud for Adobe Commerce (in the Cloud instance), you must replace the first period with three dashes. For example, if your base URL is french.branch-xXxXxXx-xXxXxXxXxXxXx.us.magentosite.cloud, enter http://french---branch-xXxXxXx-xXxXxXxXxXxXx.us.magentosite.cloud.
+9. Save changes.
 
 #### Check access to the second store
 
@@ -481,24 +500,15 @@ Applying this configuration, the table of Stores show have 2 rows. The new row s
 
 #### Change the base URL for Website2
 
-* Go to Admin dashboard (http://magento.local/admin)
-* Go to Stores > Settings > Configuration > General > Web
-* Switch the Scope (at the top of the page) to "Website2"
-* Expand "Base URLs"
-* Clear the Use system value checkbox next to "Base URL"
-* Enter the http://website2.magento.local/ URL in the Base URL and Base Link URL fields.
-* Repeat the previous step in the Base URLs (Secure) section, but replace http by https.
-* NOTE: I didn't needed it, but you could check if it works. If you're setting up a base URL for Cloud for Adobe Commerce (in the Cloud instance), you must replace the first period with three dashes. For example, if your base URL is french.branch-xXxXxXx-xXxXxXxXxXxXx.us.magentosite.cloud, enter http://french---branch-xXxXxXx-xXxXxXxXxXxXx.us.magentosite.cloud.
-* Save changes.
-
-#### Add website2 subdomain to your hosts file
-
-Your hosts file should have the following entries to be able to point to the two stores (default and second one).
-
-```
-localhost   localhost
-localhost   website2.localhost
-```
+1. Go to Admin dashboard (http://magento.local/admin)
+2. Go to Stores > Settings > Configuration > General > Web
+3. Switch the Scope (at the top of the page) to "Website2"
+4. Expand "Base URLs"
+5. Clear the Use system value checkbox next to "Base URL"
+6. Enter the http://website2.magento.local/ URL in the Base URL and Base Link URL fields.
+7. Repeat the previous step in the Base URLs (Secure) section, but replace http by https.
+8. NOTE: I didn't needed it, but you could check if it works. If you're setting up a base URL for Cloud for Adobe Commerce (in the Cloud instance), you must replace the first period with three dashes. For example, if your base URL is french.branch-xXxXxXx-xXxXxXxXxXxXx.us.magentosite.cloud, enter http://french---branch-xXxXxXx-xXxXxXxXxXxXx.us.magentosite.cloud.
+9. Save changes.
 
 #### Check access to the second website
 
@@ -637,6 +647,51 @@ if (isHttpHost("store2.")) {
 
 Follow the steps explained in the previous section about configuring store2 and website2.
 
+## Configuration for Payment, price rules and delivery methods
+
+The default Luma store needs may need additional configurations to cover some scenarios.
+
+### Payment method
+
+Since the Luma store is for demonstration purposes only, it is not set up to handle credit card payments. However, it can simulate any of the following offline payment methods:
+
+| PAYMENT TYPE           | CONFIGURATION NAME  | ENABLED BY DEFAULT? |
+|------------------------|---------------------|---------------------|
+| Check/Money Order      | checkmo             | Yes                 |
+| Bank Transfer Payment  | banktransfer        | No                  |
+| Cash on Delivery       | cashondelivery      | No                  |
+| Purchase Order         | purchaseorder       | No                  |
+| Zero Subtotal Checkout | free                | Yes                 |
+
+
+You may configure Magento to accept bank transfer payments. To allow bank transfer payments (or any other offline payment method) as a payment method, log in to Admin and select **Stores > Settings > Configuration > Sales > Payment Methods**. Then enable the payment method and click Save.
+
+Upon clicking Save, a notification message states that the cache needs to be refreshed. Click the **System > Tools > Cache Management** link to refresh the cache.
+
+### Deactivate a cart price rule
+
+By default, the Luma store includes a promotion where shipping is free if you spend at least $50.
+
+You may need to deactivate this promotion. The promotion is defined in a cart price rule, which is also known as a sales rule. When you deactivate the cart price rule, shipping is charged at a flat rate of $5 per item.
+
+To disable this cart price rule, select **Marketing > Promotions > Cart Price Rules**. Then edit rule ID 2 (Spend $50 or more - shipping is free!), and toggle the Active switch to No. Be sure to save the change.
+
+### Configure supported delivery methods
+
+If an order contains one or more simple, configurable, bundle, or group products, then you must specify how the order will be shipped. Downloadable items cannot be shipped, and Magento does not calculate shipping charges for downloadable items.
+
+If you are not shipping any products, then you do not need to set up an account with a shipping company such as UPS or Federal Express. Instead, you can use the offline delivery methods that are configured by default.
+
+| SHIPPING TYPE | CONFIGURATION NAME | ENABLED BY DEFAULT? |
+|---------------|--------------------|---------------------|
+| Flat rate     | flatrate           | Yes                 |
+| Table rate    | tablerate          | Yes                 |
+| Free shipping | freeshipping       | No                  |
+
+If you want to change which offline delivery methods are available, select **Stores > Settings > Configuration > Sales > Delivery Methods** in Admin. Enable or disable the delivery methods as desired, then click Save.
+
+Upon clicking Save, a notification message states that the cache needs to be refreshed. Click the Cache Management link to refresh the cache.
+
 ## Troubleshooting
 
 ### Errors with vagrant
@@ -690,6 +745,31 @@ sudo firewall-cmd --permanent --zone=public --add-service=https ;
 sudo firewall-cmd --reload
 ```
 
+### Elasticsearch
+
+**check it is running**
+
+```sh
+curl -X GET "localhost:9200/?pretty"
+# or
+curl -X GET 'localhost:9200/_cat/health?v&pretty'
+```
+
+**logs**
+
+```sh
+sudo tail -f /var/log/elasticsearch/elasticsearch.log
+sudo tail -f /var/log/elasticsearch/elasticsearch_server.json
+```
+
+**logs in systemd**
+
+```sh
+sudo journalctl --unit elasticsearch
+# starting from given time:
+#   sudo journalctl --unit elasticsearch --since  "2016-10-30 18:17:16"
+```
+
 ### Nginx and FPM
 
 **server user and group**
@@ -721,6 +801,8 @@ See the logs in nginx with one of the following commands:
 
 ```sh
 sudo journalctl -xe
+# or
+sudo journalctl --unit elasticsearch
 # or
 sudo tail -f /var/log/nginx/error.log
 # or
@@ -767,6 +849,46 @@ php -m
 ```
 
 ### Magento
+
+**Get authentication keys**
+
+1. Go to https://marketplace.magento.com/ > My Profile > Access Keys
+2. Click Create a New Access Key. Enter a specific name for the keys (e.g., the name of the developer receiving the keys) and click OK.
+3. New public and private keys are now associated with your account that you can click to copy. Save this information or keep the page open when working with your Magento project. Use the Public key as your username and the Private key as your password.
+
+**Get MAGEID and Download Access Token**
+
+1. Your MAGEID is displayed at the top-left corner of your account page (https://account.magento.com/).
+2. Go to https://account.magento.com/ > Account Settings > Downloads Access Token.
+3. Generate a new access token if necessary.
+
+**HTTPS downloads**
+
+Get downloads info:
+
+```sh
+MAGECREDS=<MAGEID>:<TOKEN>
+# curl -k https://MAGEID:TOKEN@www.magentocommerce.com/products/downloads/info/help
+curl -k https://$MAGECREDS@www.magentocommerce.com/products/downloads/info/help # help
+curl -k https://$MAGECREDS@www.magentocommerce.com/products/downloads/info/files # list all files
+curl -k https://$MAGECREDS@www.magentocommerce.com/products/downloads/info/json # list all files info as JSON
+curl -k https://$MAGECREDS@www.magentocommerce.com/products/downloads/info/filter/type/ee-full # list Magento EE files
+curl -k https://$MAGECREDS@www.magentocommerce.com/products/downloads/info/versions # list Magento versions
+curl -k https://$MAGECREDS@www.magentocommerce.com/products/downloads/info/filter/version/2.4 # list 2.4 versions
+```
+
+Download:
+
+```sh
+MAGECREDS=<MAGEID>:<TOKEN>
+# curl -k -O https://MAGEID:TOKEN@www.magentocommerce.com/products/downloads/file/<file_name>
+# curl -k -O https://MAGEID:TOKEN@www.magentocommerce.com/products/downloads/file/Magento-CE-2.4.2_sample_data.zip
+# or
+# curl -k -O https://MAGEID:TOKEN@www.magentocommerce.com/products/downloads/file/Magento-CE-2.4.2_sample_data.tar.gz
+curl -k -O https://$MAGECREDS@www.magentocommerce.com/products/downloads/file/Magento-CE-2.4.2_sample_data.zip
+# or
+curl -k -O https://$MAGECREDS@www.magentocommerce.com/products/downloads/file/Magento-CE-2.4.2_sample_data.tar.gz
+```
 
 **List all config values in Magento**
 
@@ -823,6 +945,21 @@ magento-cloud list
 ```sh
 cd $MAGENTOCLOUD_DIR
 magento-cloud variable:get
+```
+
+### Magento Cloud
+
+**Update public and private keys needed for Magento Cloud instances**
+
+```sh
+# Replace username and password with valid keys
+MAGENTO_REPO_PUBLIC_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+MAGENTO_REPO_PRIVATE_KEY=yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy
+echo -e "{ \"http-basic\": { \"repo.magento.com\": { \"username\": \"$MAGENTO_REPO_PUBLIC_KEY\", \"password\": \"$MAGENTO_REPO_PRIVATE_KEY\" } } }" > auth.json
+git add .
+git commit --author="Name <email>" -m "whatever"
+# e.g. git commit --author="Aldo Paz <aldo.paz@noemail.com>" -m "whatever"
+magento-cloud push
 ```
 
 ## Project files
@@ -909,8 +1046,6 @@ sudo yum -y install epel-release
 # sudo yum -y install http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 sudo yum -y install http://rpms.famillecollet.com/enterprise/remi-release-7.rpm
 sudo yum-config-manager --enable remi
-
-sudo yum -y update
 
 sudo yum -y install yum-utils net-tools lsof unzip git
 
@@ -1008,5 +1143,4 @@ echo magento | su - magento -c "\
     ssh-add ~/.ssh/id_rsa_magento && \
     magento-cloud ssh-key:add ~/.ssh/id_rsa_magento.pub --yes
 "
-
 ```
