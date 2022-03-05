@@ -692,6 +692,13 @@ If you want to change which offline delivery methods are available, select **Sto
 
 Upon clicking Save, a notification message states that the cache needs to be refreshed. Click the Cache Management link to refresh the cache.
 
+## Stop the VM whe needed
+
+```sh
+exit
+vagrant halt
+```
+
 ## Troubleshooting
 
 ### Errors with vagrant
