@@ -1241,6 +1241,19 @@ This tool quickly generates one or multiple GUIDs/UUIDs, in whatever format coul
 dotnet tool install -g dotnet-guid
 ```
 
+### Copy folders when building
+
+Add the following when you need to copy, for example, a directory from `$(BUILD_PATH)\src\Resources` to `$(BUILD_DIR)\Resources`:
+
+```xml
+<ItemGroup>
+  <ContentWithTargetPath Include="src\Resources\**">
+    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    <TargetPath>Resources\%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
+  </ContentWithTargetPath>
+</ItemGroup>
+```
+
 ## Troubleshooting
 
 TODO: populate this section
