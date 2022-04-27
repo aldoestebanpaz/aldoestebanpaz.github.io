@@ -1,5 +1,21 @@
 # Cmake usage
 
+- [Cmake usage](#cmake-usage)
+  - [Build](#build)
+  - [Cmake packages](#cmake-packages)
+    - [Module mode](#module-mode)
+    - [Config mode](#config-mode)
+      - [Config file search procedure](#config-file-search-procedure)
+      - [Example](#example)
+    - [Using pkg-config packages](#using-pkg-config-packages)
+  - [Troubleshooting](#troubleshooting)
+    - [List variables using cmake command](#list-variables-using-cmake-command)
+    - [List all calculated variables](#list-all-calculated-variables)
+  - [References](#references)
+    - [Cmake variables](#cmake-variables)
+    - [Common cmake commands](#common-cmake-commands)
+    - [Common modules](#common-modules)
+
 ## Build
 
 1. Configure the project:
@@ -154,6 +170,28 @@ Finally the modules mentioned in the `include` command are provided by the [lxqt
 ### Using pkg-config packages
 
 TODO
+
+## Troubleshooting
+
+### List variables using cmake command
+
+The command `cmake -L[A][H]` lists non-advanced cached variables.
+
+The above command lists all the variables from the CMake CACHE that are not marked as INTERNAL or ADVANCED. This will effectively display current CMake settings, which can then be changed with -D option. Changing some of the variables may result in more variables being created. If A is specified, then it will display also advanced variables. If H is specified, it will also display help for each variable.
+
+```sh
+cd build
+# Build with: cmake ..
+cmake -LAH .
+```
+
+### List all calculated variables
+
+```sh
+cd build
+# Build with: cmake ..
+less CMakeCache.txt
+```
 
 ## References
 
