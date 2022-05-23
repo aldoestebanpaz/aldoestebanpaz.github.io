@@ -936,6 +936,31 @@ After calling 'lintian', 'debuild' signs the .changes and/or .dsc files as appro
 
 If there isn't a primary key in your gnupg keychain, then 'debuild' by default executes 'dpkg-buildpackage' with '-us' and '-uc', that disables signing the package with GPG.
 
+#### Creating a GPG key
+
+GPG stands for GNU Privacy Guard and it implements the OpenPGP standard which allows you to sign and encrypt messages and files. This is useful for a number of purposes. In our case it is important that you can sign files with your key so they can be identified as something that you worked on.
+
+To generate a new GPG key, run:
+
+```sh
+gpg --gen-key
+```
+
+GPG will first ask you which kind of key you want to generate. Choosing the default (RSA and DSA) is fine. Next it will ask you about the keysize. The default (currently 2048) is fine, but 4096 is more secure. Afterwards, it will ask you if you want it to expire the key at some stage. It is safe to say “0”, which means the key will never expire. The last questions will be about your name and email address. Just pick the ones you are going to use for development here, you can add additional email addresses later on. Adding a comment is not necessary. Then you will have to set a passphrase, choose a safe one (a passphrase is just a password which is allowed to include spaces).
+
+Now GPG will create a key for you, which can take a little bit of time; it needs random bytes, so if you give the system some work to do it will be just fine. Move the cursor around, type some paragraphs of random text, load some web page.
+
+Once this is done, you will get a message similar to this one:
+
+```
+pub   4096R/43CDE61D 2010-12-06
+      Key fingerprint = 5C28 0144 FB08 91C0 2CF3  37AC 6F0B F90F 43CD E61D
+uid                  Daniel Holbach <dh@mailempfang.de>
+sub   4096R/51FBE68C 2010-12-06
+```
+
+In this case 43CDE61D is the key ID.
+
 #### GPG signing Debian source packages (.dsc) and changes (.changes) files
 
 The Debian source package file (.dsc) and changes file (.changes) are text-based files and both contain SHA1, SHA256, and MD5 checksums of all source files that comprise the source package. Since this data is signed, any modifications to the source file checksums, file size, or other data in the dsc or changes files would cause signature verification to fail.
@@ -1108,6 +1133,52 @@ sudo bash -c 'wget -O - https://packagecloud.io/gpg.key | apt-key add -'
 
 The above command downloads a GPG key and adds the GPG key to the system using 'apt-key'.
 
+### (5) Functional tests with DEP-8
+
+'automatic as-installed package tests' can be picked up by an infrastructure like ci.debian.net. Also 'lintian' is now encouraging maintainers to add 'autopkgtest' metadata.
+
+There are two tools that allows implementing DEP-8:
+- 'sadt' - simple DEP-8 test runner. See `man sadt` for details.
+- 'autopkgtest' - test an installed binary package using the source package's tests. See `man autopkgtest` for details.
+
+See [DEP 8: automatic as-installed package testing](https://dep-team.pages.debian.net/deps/dep8/) for details.
+
+#### Creating a simple automated as-installed test
+
+'debian/tests/control':
+
+```
+Test-Command: hello
+Depends: hello
+
+Tests: it-prints-the-message
+Depends: @
+```
+
+'debian/tests/it-prints-the-message':
+
+```
+#!/bin/sh
+
+set -e
+
+message=`LC_ALL=C hello`
+echo "This should be a friendly greeting: '$message'"
+test "$message" = "Hello, world!"
+```
+
+#### Running the tests
+
+Inside the build directory we could run one of the following commands for executing the tests:
+
+```sh
+# option 1
+autopkgtest -B . -- null
+
+# option 2
+sadt --verbose
+```
+
 ### What are the debhelper commands that 'dh' will execute for a given sequence?
 
 It could be confusing to document which commands are run, in which order, for all the possible build targets and configuration arrangements (or even just for the most common ones).
@@ -1207,7 +1278,9 @@ See `man wrap-and-sort` for details.
 
 ## The 'quilt' command
 
-TODO
+Quilt  is a tool to manage large sets of patches by keeping track of the changes each patch makes.
+
+See `man quilt` and [UsingQuilt](https://wiki.debian.org/UsingQuilt) for details.
 
 ## Alternatives for binary package building
 
