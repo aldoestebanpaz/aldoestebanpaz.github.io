@@ -1,3 +1,56 @@
+- [Creating a debian package](#creating-a-debian-package)
+  - [(1) Download the upstream tarball and test it](#1-download-the-upstream-tarball-and-test-it)
+  - [(2) Debianize the source tree](#2-debianize-the-source-tree)
+    - [Requirement: the package-version/ directory name format](#requirement-the-package-version-directory-name-format)
+    - [Requirement: the ../package-version.tar.gz tarball is required](#requirement-the-package-versiontargz-tarball-is-required)
+    - [Setting the name and email of the package maintainer before running debmake](#setting-the-name-and-email-of-the-package-maintainer-before-running-debmake)
+    - [Other template files](#other-template-files)
+    - [Automate the copy/download unpack and debianization with debmake](#automate-the-copydownload-unpack-and-debianization-with-debmake)
+  - [(3) Modify and customize the template files.](#3-modify-and-customize-the-template-files)
+  - [(4) Build the package](#4-build-the-package)
+    - [(4.1) Trying and failing](#41-trying-and-failing)
+    - [(4.2) Fixing the dh's 'clean' sequence, trying and failing again](#42-fixing-the-dhs-clean-sequence-trying-and-failing-again)
+      - [What happened?](#what-happened)
+    - [(4.3) Overriding 'dh_autoreconf', triying and failing again](#43-overriding-dh_autoreconf-triying-and-failing-again)
+      - [Generated files in the parent directory (..)](#generated-files-in-the-parent-directory-)
+        - [The content of the .debian.tar.xz](#the-content-of-the-debiantarxz)
+      - [Generated files in the build directory (.)](#generated-files-in-the-build-directory-)
+      - [Example content in 'debian/hello.substvars'](#example-content-in-debianhellosubstvars)
+    - [(4.4) Fixing errors found by 'lintian'](#44-fixing-errors-found-by-lintian)
+      - [Issues at 'debian/README.Debian'](#issues-at-debianreadmedebian)
+      - [Issues at 'debian/control'](#issues-at-debiancontrol)
+      - [Issues at 'debian/changelog'](#issues-at-debianchangelog)
+        - [The distribution value in a changelog entry is important](#the-distribution-value-in-a-changelog-entry-is-important)
+        - [Ignoring lintian's 'initial-upload-closes-no-bugs' tag](#ignoring-lintians-initial-upload-closes-no-bugs-tag)
+        - [Adding new changelog entries](#adding-new-changelog-entries)
+      - [Issues at 'debian/copyright'](#issues-at-debiancopyright)
+        - [License checkers](#license-checkers)
+    - [(5) Package signing](#5-package-signing)
+      - ['debuild' and package signing](#debuild-and-package-signing)
+      - [Creating a GPG key](#creating-a-gpg-key)
+      - [GPG signing Debian source packages (.dsc) and changes (.changes) files](#gpg-signing-debian-source-packages-dsc-and-changes-changes-files)
+      - [GPG signing Debian binary packages (.deb) files](#gpg-signing-debian-binary-packages-deb-files)
+        - [Verifying GPG signatures of .deb package files](#verifying-gpg-signatures-of-deb-package-files)
+        - [dpkg support for 'debsig-verify'](#dpkg-support-for-debsig-verify)
+        - ['dpkg-sig', another .deb file signing tool](#dpkg-sig-another-deb-file-signing-tool)
+        - [dpkg support for dpkg-sig](#dpkg-support-for-dpkg-sig)
+      - [GPG signatures for APT repository metadata](#gpg-signatures-for-apt-repository-metadata)
+    - [(5) Functional tests with DEP-8](#5-functional-tests-with-dep-8)
+      - [Creating a simple automated as-installed test](#creating-a-simple-automated-as-installed-test)
+      - [Running the tests](#running-the-tests)
+    - [What are the debhelper commands that 'dh' will execute for a given sequence?](#what-are-the-debhelper-commands-that-dh-will-execute-for-a-given-sequence)
+    - [Skipping signing](#skipping-signing)
+  - [Each source package may generate several binary packages](#each-source-package-may-generate-several-binary-packages)
+  - [Each modification in a Debian package is the consequence of a modification made to the source package](#each-modification-in-a-debian-package-is-the-consequence-of-a-modification-made-to-the-source-package)
+  - [Source only maintainer uploads since Debian 10 Buster](#source-only-maintainer-uploads-since-debian-10-buster)
+  - [The build logs in buildd](#the-build-logs-in-buildd)
+  - [The 'wrap-and-sort' command](#the-wrap-and-sort-command)
+  - [The 'quilt' command](#the-quilt-command)
+  - [Alternatives for binary package building](#alternatives-for-binary-package-building)
+    - [Low level tools](#low-level-tools)
+    - [High level tools](#high-level-tools)
+  - [Debian packages - native vs non-native](#debian-packages---native-vs-non-native)
+  - [Reference](#reference)
 
 # Creating a debian package
 
@@ -207,7 +260,7 @@ At this point the maintainer should customize the template files generated insid
 Here I will be using 'debuild', a wrapper script of the 'dpkg-buildpackage' command to build the Debian binary package ('dpkg-buildpackage' is the official command for it) under the proper environment variables. For normal binary build, it executes roughly:
 
 - `dpkg-source --before-build` - apply Debian patches, unless they are already applied.
-- `fakeroot debian/rules clean` - clean the build directory (aka. '<<PKGBUILDDIR>>') before build.
+- `fakeroot debian/rules clean` - clean the build directory (aka. '<\<PKGBUILDDIR\>>') before build.
 - `dpkg-source -b .` - **build the Debian source package** and *.dsc file.
 - `fakeroot debian/rules build` - build the upstream package.
 - `fakeroot debian/rules binary` - **build Debian binary packages**.
@@ -221,7 +274,7 @@ See `man debuild` and `man dpkg-buildpackage` for more details.
 
 ### (4.1) Trying and failing
 
-Inside the source tree, now known as the build directory (aka. '<<PKGBUILDDIR>>'), we can execute 'debuild'.
+Inside the source tree, now known as the build directory (aka. '<\<PKGBUILDDIR\>>'), we can execute 'debuild'.
 
 ```sh
 cd hello-2.12
@@ -565,7 +618,7 @@ The generated files in the build directory are:
 - 'debian/debhelper-build-stamp' - The dh's stamp file. In compat 10 (or later), dh creates a stamp file 'debian/debhelper-build-stamp' after the build step(s) are complete to avoid re-running them. It is possible to avoid the stamp file by passing '--without=build-stamp' to 'dh'. See INTERNALS section in `man dh` for details.
 - 'debian/.debhelper/' - Temporal files generated by debhelper commands.
 - 'debian/hello.substvars' - Debian source substitution variables. Before 'dpkg-source', 'dpkg-gencontrol' and 'dpkg-genchanges' write their control information they perform some variable substitutions on the output file.. See `man 5 deb-substvars`.
-- 'debian/hello/' - The generated content of the binary package - When 'dh_auto_install' is executed, it by default will install the files inside the '<<PKGBUILDDIR>>/debian/<package>' directory with a command like for example `make -j4 install DESTDIR=/home/apaz/packaging-example/hello-2.12/debian/hello`.  See `man dh_auto_install` for details.
+- 'debian/hello/' - The generated content of the binary package - When 'dh_auto_install' is executed, it by default will install the files inside the '<\<PKGBUILDDIR\>>/debian/<package>' directory with a command like for example `make -j4 install DESTDIR=/home/apaz/packaging-example/hello-2.12/debian/hello`.  See `man dh_auto_install` for details.
 - 'debian/hello/DEBIAN/control' - Contains the most vital (and version-dependent) information about a binary package. See `man dh_gencontrol`, `man dpkg-gencontrol` and [5.3. Binary package control files – DEBIAN/control in the Debian Policy Manual](https://www.debian.org/doc/debian-policy/ch-controlfields.html#binary-package-control-files-debian-control) for details.
 - 'debian/hello/DEBIAN/md5sums' - Lists the md5sums of each file in the package. These files are used by 'dpkg --verify' or the 'debsums' program.. See `man dh_md5sums` for details.
 
@@ -1246,7 +1299,7 @@ Quite frequently, a source package (for a given software) can generate several b
 
 Just as frequently, the documentation is provided in a dedicated package: the user may install it independently from the software, and may at any time choose to remove it to save disk space. Additionally, this also saves disk space on the Debian mirrors, since the documentation package will be shared amongst all of the architectures (instead of having the documentation duplicated in the packages for each architecture).
 
-See [5.3. Structure of a Source Package in the The Debian Administrator's Handbook][(https://debian-handbook.info/browse/ro-RO/stable/sect.source-package-structure.html](https://www.debian.org/doc/manuals/debian-handbook/sect.source-package-structure.html)) for details.
+See [5.3. Structure of a Source Package in the The Debian Administrator's Handbook](https://www.debian.org/doc/manuals/debian-handbook/sect.source-package-structure.html) for details.
 
 ## Each modification in a Debian package is the consequence of a modification made to the source package
 
@@ -1254,13 +1307,13 @@ The source package is the foundation of everything in Debian. All Debian package
 
 When a new version of a package (source package and one or more binary packages) arrives on the Debian server, the source package is the most important. Indeed, it will then be used by buildd - a network of machines of different architectures for compilation on the various architectures supported by Debian. The fact that the developer also sends one or more binary packages for a given architecture (usually i386 or amd64) is relatively unimportant, since these could just as well have been automatically generated.
 
-See [5.3. Structure of a Source Package in the The Debian Administrator's Handbook][(https://debian-handbook.info/browse/ro-RO/stable/sect.source-package-structure.html](https://www.debian.org/doc/manuals/debian-handbook/sect.source-package-structure.html)) for details.
+See [5.3. Structure of a Source Package in the The Debian Administrator's Handbook](https://www.debian.org/doc/manuals/debian-handbook/sect.source-package-structure.html) for details.
 
 ## Source only maintainer uploads since Debian 10 Buster
 
 Right after the release of Debian 10 Buster the Release Team announced that maintainer binary uploads will no longer be accepted for main and all binary packages in this component will be built automatically from mandatory source-only uploads.
 
-See [5.3. Structure of a Source Package in the The Debian Administrator's Handbook][(https://debian-handbook.info/browse/ro-RO/stable/sect.source-package-structure.html](https://www.debian.org/doc/manuals/debian-handbook/sect.source-package-structure.html)) for details.
+See [5.3. Structure of a Source Package in the The Debian Administrator's Handbook](https://www.debian.org/doc/manuals/debian-handbook/sect.source-package-structure.html) for details.
 
 ## The build logs in buildd
 
