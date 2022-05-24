@@ -38,3 +38,20 @@ find ~/.m2/repository/org/springframework/ -name "*.jar" -exec sh -c "jar -tf {}
 ```
 
 I replaced egrep with grep because I want to search an exact value.
+
+# How to debug
+
+You can attach a debugger to a running process. The following steps configures IntelliJ IDEA as the debugger.
+
+1. Run > Edit Configurations
+2. Click "+" and select "Remote JVM Debug"
+3. Put a convenient name
+4. Copy the text inside "Command line arguments for remote JVM" and add append it to the command that will execute the code.
+```
+-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005
+```
+5. Click "OK" to save
+
+If you want your application to wait until debugger is connected just change suspend flag to 'suspend=y'.
+
+NOTE: if you stop the debugger session the code will still continue his execution.
