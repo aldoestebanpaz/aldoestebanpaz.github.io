@@ -6,13 +6,14 @@
     - [Setting the name and email of the package maintainer before running debmake](#setting-the-name-and-email-of-the-package-maintainer-before-running-debmake)
     - [Other template files](#other-template-files)
     - [Automate the copy/download unpack and debianization with debmake](#automate-the-copydownload-unpack-and-debianization-with-debmake)
-  - [(3) Modify and customize the template files.](#3-modify-and-customize-the-template-files)
+  - [(3) Customize the template files in debian/](#3-customize-the-template-files-in-debian)
   - [(4) Build the package](#4-build-the-package)
     - [(4.1) Trying and failing](#41-trying-and-failing)
     - [(4.2) Fixing the dh's 'clean' sequence, trying and failing again](#42-fixing-the-dhs-clean-sequence-trying-and-failing-again)
       - [What happened?](#what-happened)
     - [(4.3) Overriding 'dh_autoreconf', triying and failing again](#43-overriding-dh_autoreconf-triying-and-failing-again)
       - [Generated files in the parent directory (..)](#generated-files-in-the-parent-directory-)
+        - [The content of the binary package (.deb)](#the-content-of-the-binary-package-deb)
         - [The content of the .debian.tar.xz](#the-content-of-the-debiantarxz)
       - [Generated files in the build directory (.)](#generated-files-in-the-build-directory-)
       - [Example content in 'debian/hello.substvars'](#example-content-in-debianhellosubstvars)
@@ -25,21 +26,28 @@
         - [Adding new changelog entries](#adding-new-changelog-entries)
       - [Issues at 'debian/copyright'](#issues-at-debiancopyright)
         - [License checkers](#license-checkers)
-    - [(5) Package signing](#5-package-signing)
-      - ['debuild' and package signing](#debuild-and-package-signing)
-      - [Creating a GPG key](#creating-a-gpg-key)
-      - [GPG signing Debian source packages (.dsc) and changes (.changes) files](#gpg-signing-debian-source-packages-dsc-and-changes-changes-files)
-      - [GPG signing Debian binary packages (.deb) files](#gpg-signing-debian-binary-packages-deb-files)
-        - [Verifying GPG signatures of .deb package files](#verifying-gpg-signatures-of-deb-package-files)
-        - [dpkg support for 'debsig-verify'](#dpkg-support-for-debsig-verify)
-        - ['dpkg-sig', another .deb file signing tool](#dpkg-sig-another-deb-file-signing-tool)
-        - [dpkg support for dpkg-sig](#dpkg-support-for-dpkg-sig)
-      - [GPG signatures for APT repository metadata](#gpg-signatures-for-apt-repository-metadata)
-    - [(5) Functional tests with DEP-8](#5-functional-tests-with-dep-8)
-      - [Creating a simple automated as-installed test](#creating-a-simple-automated-as-installed-test)
-      - [Running the tests](#running-the-tests)
-    - [What are the debhelper commands that 'dh' will execute for a given sequence?](#what-are-the-debhelper-commands-that-dh-will-execute-for-a-given-sequence)
-    - [Skipping signing](#skipping-signing)
+  - [(5) Package signing](#5-package-signing)
+    - ['debuild' and package signing](#debuild-and-package-signing)
+    - [Creating a GPG key](#creating-a-gpg-key)
+      - [Create a backup of your GPG keys](#create-a-backup-of-your-gpg-keys)
+    - [GPG signing Debian source packages (.dsc) and changes (.changes) files](#gpg-signing-debian-source-packages-dsc-and-changes-changes-files)
+    - [GPG signing Debian binary packages (.deb) files](#gpg-signing-debian-binary-packages-deb-files)
+      - [Verifying GPG signatures of .deb package files](#verifying-gpg-signatures-of-deb-package-files)
+      - [dpkg support for 'debsig-verify'](#dpkg-support-for-debsig-verify)
+      - ['dpkg-sig', another .deb file signing tool](#dpkg-sig-another-deb-file-signing-tool)
+      - [dpkg support for dpkg-sig](#dpkg-support-for-dpkg-sig)
+    - [GPG signatures for APT repository metadata](#gpg-signatures-for-apt-repository-metadata)
+  - [(6) Functional tests with DEP-8](#6-functional-tests-with-dep-8)
+    - [Creating a simple automated as-installed test](#creating-a-simple-automated-as-installed-test)
+    - [Running the tests](#running-the-tests)
+  - [Files in 'debian/' directory](#files-in-debian-directory)
+    - [The minimum required for packaging](#the-minimum-required-for-packaging)
+    - ['debian/compat'](#debiancompat)
+    - ['debian/README.source' and 'debian/README.Debian'](#debianreadmesource-and-debianreadmedebian)
+    - ['debian/*.docs'](#debiandocs)
+    - ['debian/watch'](#debianwatch)
+  - [What are the debhelper commands that 'dh' will execute for a given sequence?](#what-are-the-debhelper-commands-that-dh-will-execute-for-a-given-sequence)
+  - [Skipping signing](#skipping-signing)
   - [Each source package may generate several binary packages](#each-source-package-may-generate-several-binary-packages)
   - [Each modification in a Debian package is the consequence of a modification made to the source package](#each-modification-in-a-debian-package-is-the-consequence-of-a-modification-made-to-the-source-package)
   - [Source only maintainer uploads since Debian 10 Buster](#source-only-maintainer-uploads-since-debian-10-buster)
@@ -50,6 +58,7 @@
     - [Low level tools](#low-level-tools)
     - [High level tools](#high-level-tools)
   - [Debian packages - native vs non-native](#debian-packages---native-vs-non-native)
+  - [The 'git-buildpackage' package](#the-git-buildpackage-package)
   - [Reference](#reference)
 
 # Creating a debian package
@@ -102,7 +111,7 @@ make distclean
 
 **Many packages are packaged using only a text editor while imitating how other similar packages are packaged and consulting how the 'Debian policy' requires us to do**. This seems to me the most popular method for the real-life packaging activity.
 
-The 'debmake' command is a helper script that debianizes the upstream source tree by adding template files only in the debian directory. It is intended to replace functions offered historically by the `dh_make` command.
+The 'debmake' command is a helper script that debianizes the upstream source tree by adding template files only in the debian directory. It is intended to replace functions offered historically by the 'dh_make' command.
 
 Fetures:
 
@@ -251,11 +260,13 @@ tree
 # └── hello-2.12.tar.gz
 ```
 
-## (3) Modify and customize the template files.
+## (3) Customize the template files in debian/
 
 At this point the maintainer should customize the template files generated inside 'debian/' by 'debmake'. We will skip the customization here to show the possible errors that 'lintian', the static analysis tool for Debian packages, could throw when building a package.
 
 ## (4) Build the package
+
+NOTE: Much of the package building work is done by a series of scripts called 'debhelper'. The exact behaviour of debhelper changes with new major versions, the 'compat' number in the 'debian/control' file instructs 'debhelper' which version to act as. You will generally want to set this to the most recent version at the moment of packaging.
 
 Here I will be using 'debuild', a wrapper script of the 'dpkg-buildpackage' command to build the Debian binary package ('dpkg-buildpackage' is the official command for it) under the proper environment variables. For normal binary build, it executes roughly:
 
@@ -582,12 +593,21 @@ For uploading:
 Source-package related:
 
 - 'hello_2.12-1.dsc' - The Debian Source Control file. Describes the source package and indicates which other files are part thereof. It is signed by its maintainer, which guarantees authenticity. This file is generated by 'dpkg-source' when it builds the source archive. See `man dpkg-source` and `man 5 dsc` for details.
-- 'hello_2.12-1.debian.tar.xz' - Contains the Debian maintainer generated/modified contents - the 'debian/' directory and patches. A debian.tar.xz archive contains the compiling instructions and a set of upstream patches contributed by the package maintainer. These last are recorded in a format compatible with quilt — a tool that facilitates the management of a series of patches.
+- 'hello_2.12-1.debian.tar.xz' - The debianization patch - Historically it was known as the '.diff.gz' file in 1.0 format, it contains the Debian maintainer generated/modified contents; the 'debian/' directory and patches. A debian.tar.xz archive contains the compiling instructions and a set of upstream patches contributed by the package maintainer. These last are recorded in a format compatible with quilt — a tool that facilitates the management of a series of patches.
 
 Binary-package related:
 
 - 'hello_2.12-1_amd64.deb' - The Debian binary package. See `man dh_builddeb`, `man dpkg-deb` and `man 5 deb` for details.
 - 'hello-dbgsym_2.12-1_amd64.ddeb' - The dbgsym package (aka. debug package). See `man dh_builddeb` and `man dh_strip` for details.
+
+##### The content of the binary package (.deb)
+
+We can list the content of a .deb package with 'lesspipe':
+
+```sh
+lesspipe ../hello_2.12-0ubuntu1_amd64.deb
+#...
+```
 
 ##### The content of the .debian.tar.xz
 
@@ -687,7 +707,7 @@ lintian ../hello_2.12-1_amd64.deb
 # W: hello: wrong-bug-number-in-closes #nnnn in the installed changelog (line 3)
 ```
 
-To see verbose description of the problems we can use the `--info` flag or the `lintian-info` command.
+NOTE: To see verbose description of the problems we can use the '--info' flag or the 'lintian-info' command. For Python packages, there is also a 'lintian4python' tool that provides some additional lintian checks.
 
 Reference: [Lintian User's Manual](https://lintian.debian.org/manual/index.html).
 
@@ -727,6 +747,8 @@ lintian ../hello_2.12-1_amd64.deb
 W: hello: readme-debian-contains-debmake-template
 # details: https://lintian.debian.org/tags/readme-debian-contains-debmake-template
 ```
+
+NOTE: this file could be deleted if you think no notes regarding this package are needed.
 
 Changed 'debian/README.Debian' from:
 
@@ -821,6 +843,10 @@ Description: auto-generated package by debmake
  debmake(1) command provided by the debmake package.
 ```
 
+NOTE: Since compatibility level 10, 'debhelper' enables the autoreconf sequence by default. It is therefore not necessary to specify build-dependencies on 'dh-autoreconf' or 'autotools-dev' and they can be removed.
+
+NOTE: The extended description (the lines after the first line of the "Description:" field) is required and must not be empty. See [extended-description-is-empty](https://lintian.debian.org/tags/extended-description-is-empty) and [3.4. The description of a package in the Debian Policy Manual](https://www.debian.org/doc/debian-policy/ch-binary.html#the-description-of-a-package) for details.
+
 #### Issues at 'debian/changelog'
 
 Here we will fix these issues:
@@ -903,7 +929,9 @@ W: hello source: syntax-error-in-dep5-copyright debian/copyright: Continuation l
 # details: https://lintian.debian.org/tags/syntax-error-in-dep5-copyright
 ```
 
-Fixing a 'debian/copyright' file implies extracting all the different copyright licenses in the upstream's files and. 'debmake' generated a copyright template including all the licenses extracted from the sources so we have to modify it to just include a simplified list with references to the corresponding complete license file in 'usr/share/common-licenses/'.
+'debian/copyright' needs to be filled in to follow the licence of the upstream source. Fixing a 'debian/copyright' file implies extracting all the different copyright licenses in the upstream's files.
+
+'debmake' generated a copyright template including all the licenses extracted from the sources so we have to modify it to just include a simplified list with references to the corresponding complete license file in 'usr/share/common-licenses/'.
 
 New version of 'debian/copyright':
 
@@ -969,7 +997,7 @@ Other similar tools exist. Here is a list of known tools also command-line based
 
 See `man 1p licensecheck`, `man debmake` and [Debian wiki: CopyrightReviewTools](https://wiki.debian.org/CopyrightReviewTools) for details.
 
-### (5) Package signing
+## (5) Package signing
 
 **Signing data with a GPG key enables the recipient of the data to verify that no modifications occurred after the data was signed (assuming the recipient has a copy of the sender’s public GPG key)**.
 
@@ -983,38 +1011,53 @@ If you publish a Debian package and GPG sign the package yourself before distrib
 
 See [7.5. Package signing in Debian in the Securing Debian Manual](https://www.debian.org/doc/manuals/securing-debian-manual/deb-pack-sign.en.html) for details.
 
-#### 'debuild' and package signing
+### 'debuild' and package signing
 
 After calling 'lintian', 'debuild' signs the .changes and/or .dsc files as appropriate (using 'debsign' to do this instead of 'dpkg-buildpackage' itself; all relevant key-signing options are passed on). Signing occurs automatically if you have a primary key in you gnupg keychain, and you run 'dpkg-buildpackage' or 'debuild' without the '-us' and '-uc' switches.
 
 If there isn't a primary key in your gnupg keychain, then 'debuild' by default executes 'dpkg-buildpackage' with '-us' and '-uc', that disables signing the package with GPG.
 
-#### Creating a GPG key
+### Creating a GPG key
 
 GPG stands for GNU Privacy Guard and it implements the OpenPGP standard which allows you to sign and encrypt messages and files. This is useful for a number of purposes. In our case it is important that you can sign files with your key so they can be identified as something that you worked on.
 
-To generate a new GPG key, run:
+```sh
+gpg --quick-generate-key "Aldo Paz <estebanpazutn@gmail.com>" rsa4096 default never
+# ...
+
+gpg --list-keys --keyid-format short
+# /home/apaz/.gnupg/pubring.kbx
+# -----------------------------
+# pub   rsa4096/17758171 2022-05-24 [SC]
+#       0837A887276EF500C9F3FC98AADB3BFE17758171
+# uid         [ultimate] Aldo Paz <estebanpazutn@gmail.com>
+```
+
+GPG will ask for a passphrase (a passphrase is just a password which is allowed to include spaces), choose a safe one.
+
+NOTE: Before GPG creates a key for you, it needs random bytes. So if you give the system some work to do it will be just fine; move the cursor around, type some paragraphs of random text, load some web page.
+
+In this case 17758171 is the key ID.
+
+#### Create a backup of your GPG keys
+
+GPG keys, secret keys, subkeys and ownertrust can be exported and imported again with following commands:
 
 ```sh
-gpg --gen-key
+# Export
+gpg --export --armor "Aldo Paz" > mykey.pub.asc
+gpg --export-secret-keys --armor "Aldo Paz" > mykey.priv.asc
+gpg --export-secret-subkeys --armor "Aldo Paz" > mykey.sub_priv.asc
+gpg --export-ownertrust > ownertrust.txt
+
+# Import
+gpg --import mykey.pub.asc
+gpg --import mykey.priv.asc
+gpg --import mykey.sub_priv.asc
+gpg --import-ownertrust ownertrust.txt
 ```
 
-GPG will first ask you which kind of key you want to generate. Choosing the default (RSA and DSA) is fine. Next it will ask you about the keysize. The default (currently 2048) is fine, but 4096 is more secure. Afterwards, it will ask you if you want it to expire the key at some stage. It is safe to say “0”, which means the key will never expire. The last questions will be about your name and email address. Just pick the ones you are going to use for development here, you can add additional email addresses later on. Adding a comment is not necessary. Then you will have to set a passphrase, choose a safe one (a passphrase is just a password which is allowed to include spaces).
-
-Now GPG will create a key for you, which can take a little bit of time; it needs random bytes, so if you give the system some work to do it will be just fine. Move the cursor around, type some paragraphs of random text, load some web page.
-
-Once this is done, you will get a message similar to this one:
-
-```
-pub   4096R/43CDE61D 2010-12-06
-      Key fingerprint = 5C28 0144 FB08 91C0 2CF3  37AC 6F0B F90F 43CD E61D
-uid                  Daniel Holbach <dh@mailempfang.de>
-sub   4096R/51FBE68C 2010-12-06
-```
-
-In this case 43CDE61D is the key ID.
-
-#### GPG signing Debian source packages (.dsc) and changes (.changes) files
+### GPG signing Debian source packages (.dsc) and changes (.changes) files
 
 The Debian source package file (.dsc) and changes file (.changes) are text-based files and both contain SHA1, SHA256, and MD5 checksums of all source files that comprise the source package. Since this data is signed, any modifications to the source file checksums, file size, or other data in the dsc or changes files would cause signature verification to fail.
 
@@ -1039,7 +1082,7 @@ gpg --verify ../hello_2.12-1_amd64.changes
 
 See `man debsign` for details.
 
-#### GPG signing Debian binary packages (.deb) files
+### GPG signing Debian binary packages (.deb) files
 
 A Debian binary package file (.deb) itself is actually an AR archive. This file can be signed with a GPG key using 'debsigs' (not debsign). The signature is included in the archive and is named based on its role.
 
@@ -1061,7 +1104,7 @@ Verifying signatures on .deb package files is a bit more involved than the other
 
 See `man 1p debsigs` for details.
 
-##### Verifying GPG signatures of .deb package files
+#### Verifying GPG signatures of .deb package files
 
 In order to verify .deb package files, you must have the program 'debsig-verify' installed, import the public GPG keys you will use to verify packages to the 'debsig-verify' keyrings, and you must also create an XML policy document for signature verification.
 
@@ -1112,7 +1155,7 @@ debsig-verify test_1.0-7_amd64.deb
 # debsig: Verified package from `Test package' (test)
 ```
 
-##### dpkg support for 'debsig-verify'
+#### dpkg support for 'debsig-verify'
 
 dpkg has support for verifying GPG signatures of Debian package files, but this verification is disabled by default. This means that when a package is installed on a Debian-based system, the signature checking for individual packages is disabled.
 
@@ -1120,7 +1163,7 @@ In order to enable it, the file '/etc/dpkg/dpkg.cfg' will need to be modified to
 
 CAUTION: Doing this may cause dpkg to reject installation of unsigned Debian files. If you plan to enable this, it is strongly recommended you try this first in a testing environment. You’ll also need to ensure you have the correct XML policy files created, as explained above.
 
-##### 'dpkg-sig', another .deb file signing tool
+#### 'dpkg-sig', another .deb file signing tool
 
 There is a another tool available for signing and verifying Debian package files called 'dpkg-sig'. Signatures created by this tool are not compatible with debsigs and the tools cannot understand or verify each other signatures.
 
@@ -1150,11 +1193,11 @@ dpkg-sig --verify test_1.0-7_amd64.deb
 
 Additionally, no XML policy document is required for signature verification, which makes signature verification much simpler to integrate into a workflow.
 
-##### dpkg support for dpkg-sig
+#### dpkg support for dpkg-sig
 
 Unfortunately, dpkg does not have built-in support for 'dpkg-sig', but the discussion appears to have been moved to a bug ticket with Debian: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=340306.
 
-#### GPG signatures for APT repository metadata
+### GPG signatures for APT repository metadata
 
 It is also possible to generate GPG signatures for APT repositories in addition to generating signatures for Debian packages themselves.
 
@@ -1186,7 +1229,7 @@ sudo bash -c 'wget -O - https://packagecloud.io/gpg.key | apt-key add -'
 
 The above command downloads a GPG key and adds the GPG key to the system using 'apt-key'.
 
-### (5) Functional tests with DEP-8
+## (6) Functional tests with DEP-8
 
 'automatic as-installed package tests' can be picked up by an infrastructure like ci.debian.net. Also 'lintian' is now encouraging maintainers to add 'autopkgtest' metadata.
 
@@ -1196,7 +1239,7 @@ There are two tools that allows implementing DEP-8:
 
 See [DEP 8: automatic as-installed package testing](https://dep-team.pages.debian.net/deps/dep8/) for details.
 
-#### Creating a simple automated as-installed test
+### Creating a simple automated as-installed test
 
 'debian/tests/control':
 
@@ -1220,7 +1263,7 @@ echo "This should be a friendly greeting: '$message'"
 test "$message" = "Hello, world!"
 ```
 
-#### Running the tests
+### Running the tests
 
 Inside the build directory we could run one of the following commands for executing the tests:
 
@@ -1232,7 +1275,55 @@ autopkgtest -B . -- null
 sadt --verbose
 ```
 
-### What are the debhelper commands that 'dh' will execute for a given sequence?
+## Files in 'debian/' directory
+
+See [Chapter 5. Other files under the debian directory in the Debian New Maintainers' Guide](https://www.debian.org/doc/manuals/maint-guide/dother.en.html) for details.
+
+### The minimum required for packaging
+
+The minimum required files are:
+
+```
+debian/source/format
+debian/control
+debian/changelog
+debian/copyright
+debian/rules
+```
+
+### 'debian/compat'
+
+It is not required enymore. In current 'debhelper' versions, you can specify the compatibility level in 'debian/control' by adding a Build-Depends on the 'debhelper-compat' package.
+
+Prior versions of 'debhelper' required specifying the compatibility level in the file 'debian/compat', and current 'debhelper' still supports this for backward compatibility. To use this method, the debian/compat file should contain the compatibility level as a single number, and no other content. If you specify the compatibility level by this method, your package will also need a versioned build dependency on a version of the debhelper package equal to (or greater than) the compatibility level your package uses.
+
+So, if you specify compatibility level 13 in 'debian/compat', ensure 'debian/control' has:
+
+```
+Build-Depends: debhelper (>= 13~)
+```
+
+Note that you must use either the build-dependency on 'debhelper-compat' or the 'debian/compat' file. Whenever possible, the 'debhelper-compat' build-dependency is recommended.
+
+See `man 7 debhelper` for details.
+
+### 'debian/README.source' and 'debian/README.Debian'
+
+'debian/README.source' and 'debian/README.Debian' are only needed if your package has any non-standard features.
+
+'debian/README.Debian' should document any extra details or discrepancies between the original package and the Debian version.
+
+'debian/README.source' (not 'debian/README.Debian') may include any information that would be helpful to someone modifying the source package. Maintainers are encouraged to document in a 'debian/README.source' file any source package with a particularly complex or unintuitive source layout or build system (for example, a package that builds the same source multiple times to generate different binary packages). See [4.14. Source package handling: debian/README.source in the Debian Policy Manual](https://www.debian.org/doc/debian-policy/ch-source.html#source-package-handling-debian-readme-source) for details.
+
+### 'debian/*.docs'
+
+Any 'debian/*.docs' file list documentation files to be installed into package. Supports substitution variables in compat 13 and later as documented in 'debhelper'. See `man dh_installdocs` for details.
+
+### 'debian/watch'
+
+TODO
+
+## What are the debhelper commands that 'dh' will execute for a given sequence?
 
 It could be confusing to document which commands are run, in which order, for all the possible build targets and configuration arrangements (or even just for the most common ones).
 
@@ -1269,7 +1360,7 @@ dh clean --with quilt --no-act
 #    dh_clean
 ```
 
-### Skipping signing
+## Skipping signing
 
 Normally 'dpkg-buildpackage' runs the 'sign' hook and calls 'gpg2' or 'gpg' to sign the following files as long as it is not an UNRELEASED build:
 - '*.dsc': the Debian source packages' control file. See `man 5 dsc` for details.
@@ -1362,6 +1453,14 @@ See [Chapter 6. Building the package in the Debian New Maintainers' Guide](https
 A native Debian package has the "3.0 (native)" format.
 
 A non-native Debian package has the "3.0 (quilt)" format. It is more friendly to the downstream distributions.
+
+## The 'git-buildpackage' package
+
+'git-buildpackage' is a suite to help with maintaining Debian packages in Git repositories.
+
+TODO
+
+See [git-buildpackage documentation](https://honk.sigxcpu.org/piki/projects/git-buildpackage/) and [PackagingWithGit in the Debian wiki](https://wiki.debian.org/PackagingWithGit) for details.
 
 ## Reference
 
