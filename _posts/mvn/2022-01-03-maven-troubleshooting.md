@@ -152,6 +152,28 @@ mvn dependency:tree -DoutputFile=./dependency-tree.txt
 
 Reference: https://maven.apache.org/plugins/maven-dependency-plugin/tree-mojo.html
 
+## Seeing which Profiles are active
+
+Profiles are customized build configurations that could be configured to be activated with one or more of the following options:
+- a -P argument,
+- based on a -D system property (if it is present, not present, has a specific value, or has a value other than the specified value),
+- based on the JDK running on the machine,
+- based on some operating system information,
+- if a file exists or is missing,
+- active by default.
+
+Also a Profile could be disabled using the '!' or '-' character in front of the name in the command line.
+
+To just see what Profiles are active at the moment of execution maven, we can use the 'active-profiles' goal of the 'maven-help-plugin' plugin:
+
+```sh
+cd myproject
+
+mvn help:active-profiles
+# The following profiles are active:
+# ...
+```
+
 ## Show all ancestor POMs of the project
 
 This is helful to answer the following questions:
