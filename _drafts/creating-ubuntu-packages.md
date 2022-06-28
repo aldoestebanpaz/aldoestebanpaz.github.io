@@ -1,3 +1,87 @@
+- [Creating packages for Ubuntu](#creating-packages-for-ubuntu)
+  - [(1) Create and configure your account on Launchpad](#1-create-and-configure-your-account-on-launchpad)
+    - [(1.1) Get a Launchpad account and account ID](#11-get-a-launchpad-account-and-account-id)
+  - [(2) Install packaging-related software](#2-install-packaging-related-software)
+    - [(2.1) Install the essential packages](#21-install-the-essential-packages)
+    - [(2.2) Export configuration variables for these tools](#22-export-configuration-variables-for-these-tools)
+  - [(3) Create a GPG key and upload it to your Launchpad account](#3-create-a-gpg-key-and-upload-it-to-your-launchpad-account)
+    - [(3.1) Create a GPG key](#31-create-a-gpg-key)
+    - [(3.2) Upload the public part of your GPG key to the Ubuntu keyserver](#32-upload-the-public-part-of-your-gpg-key-to-the-ubuntu-keyserver)
+    - [(3.3) Upload your GPG key to Launchpad](#33-upload-your-gpg-key-to-launchpad)
+    - [(3.4) Confirm the GPG key in Launchpad](#34-confirm-the-gpg-key-in-launchpad)
+    - [How to create a backup of your GPG keys](#how-to-create-a-backup-of-your-gpg-keys)
+      - [Copying the ~/.gnupg](#copying-the-gnupg)
+      - [Export and import commands](#export-and-import-commands)
+  - [(5) Create a SSH key and upload it to your Launchpad account](#5-create-a-ssh-key-and-upload-it-to-your-launchpad-account)
+    - [(5.1) Create a SSH key](#51-create-a-ssh-key)
+    - [(5.2) Upload your SSH key to Launchpad](#52-upload-your-ssh-key-to-launchpad)
+  - [(6) Download the upstream tarball and test it](#6-download-the-upstream-tarball-and-test-it)
+  - [(7) Debianize the source tree](#7-debianize-the-source-tree)
+    - [(7.1) Install 'dh-make'](#71-install-dh-make)
+    - [(7.2) Debianize from the tarball using the plugin](#72-debianize-from-the-tarball-using-the-plugin)
+    - [Requirement: the package-version/ directory name format](#requirement-the-package-version-directory-name-format)
+      - [Required: the ../package-version.orig.tar.gz tarball is required](#required-the-package-versionorigtargz-tarball-is-required)
+  - [(8) Customize the template files in debian/](#8-customize-the-template-files-in-debian)
+    - [(8.1) Remove unnecessary example files](#81-remove-unnecessary-example-files)
+    - [(8.2) Customise each of the files](#82-customise-each-of-the-files)
+      - [(8.2.1) Check and customize 'debian/source/format' if necessary](#821-check-and-customize-debiansourceformat-if-necessary)
+      - [(8.2.2) Customize 'debian/control'](#822-customize-debiancontrol)
+        - [(8.2.2.1) Define the compat version in the 'Build-Depends:' section](#8221-define-the-compat-version-in-the-build-depends-section)
+        - [(8.2.2.2) Add other required build-dependencies in the 'Build-Depends:' section](#8222-add-other-required-build-dependencies-in-the-build-depends-section)
+        - [(8.2.2.3) Add other required run-dependencies in the 'Depends:' section](#8223-add-other-required-run-dependencies-in-the-depends-section)
+      - [(8.2.3) Customize 'debian/changelog' for Ubuntu](#823-customize-debianchangelog-for-ubuntu)
+        - [How Ubuntu package version naming works](#how-ubuntu-package-version-naming-works)
+      - [(8.2.4) Customize 'debian/copyright'](#824-customize-debiancopyright)
+      - [(8.2.5) Customize 'debian/rules'](#825-customize-debianrules)
+      - [(8.2.6) Customize or delete 'debian/README.Debian'](#826-customize-or-delete-debianreadmedebian)
+      - [(8.2.7) Customize or delete 'debian/README.source'](#827-customize-or-delete-debianreadmesource)
+      - [(8.2.8) Customize or delete 'debian/*.docs'](#828-customize-or-delete-debiandocs)
+      - [(8.2.9) Example of changes](#829-example-of-changes)
+  - [(9) Build the package](#9-build-the-package)
+  - [(10) Install the package and check it works](#10-install-the-package-and-check-it-works)
+  - [(11) Fix errors with 'lintian'](#11-fix-errors-with-lintian)
+    - [(11.1) Run 'lintian'](#111-run-lintian)
+    - [(11.2) Rebuild the package](#112-rebuild-the-package)
+  - [(12) Build a signed, source-only .changes file](#12-build-a-signed-source-only-changes-file)
+    - [Options when creating a "brand new package" vs "derivative of a package that's already in Ubuntu's primary archive"](#options-when-creating-a-brand-new-package-vs-derivative-of-a-package-thats-already-in-ubuntus-primary-archive)
+    - [Alternative way of signing using 'debsign' manually](#alternative-way-of-signing-using-debsign-manually)
+    - [How 'debsign' signs the source package with GPG](#how-debsign-signs-the-source-package-with-gpg)
+  - [(13) Publishing into a PPA on Launchpad - Alternative 1 - Upload the source package to a PPA](#13-publishing-into-a-ppa-on-launchpad---alternative-1---upload-the-source-package-to-a-ppa)
+    - [(13.1) Create/Activate a PPA in Launchpad](#131-createactivate-a-ppa-in-launchpad)
+    - [The PPAs' main site](#the-ppas-main-site)
+    - [(13.2) Upload the source package to the PPA](#132-upload-the-source-package-to-the-ppa)
+    - [(13.3) Test installing the package from the PPA](#133-test-installing-the-package-from-the-ppa)
+    - [How to remove a PPA repository](#how-to-remove-a-ppa-repository)
+  - [(14) Publishing into a PPA on Launchpad - Alternative 2 - Create the source package using a recipe (aka. daily build)](#14-publishing-into-a-ppa-on-launchpad---alternative-2---create-the-source-package-using-a-recipe-aka-daily-build)
+    - [(14.1) Publish the code on Launchpad](#141-publish-the-code-on-launchpad)
+      - [(14.1.1) Maintain a Debian package in git with 'git-buildpackage' (gbp)](#1411-maintain-a-debian-package-in-git-with-git-buildpackage-gbp)
+        - [Adding entries to 'debian/changelog' using 'gbp'](#adding-entries-to-debianchangelog-using-gbp)
+        - [Git clone, commit, and tag using 'gbp'](#git-clone-commit-and-tag-using-gbp)
+      - [(14.1.3) Test building the package with 'gbp'](#1413-test-building-the-package-with-gbp)
+      - [(14.1.2) Push into a personal respository on Launchpad](#1412-push-into-a-personal-respository-on-launchpad)
+        - [Defining an abbreviation for repositories hosted on Launchpad](#defining-an-abbreviation-for-repositories-hosted-on-launchpad)
+        - [Repository URLs](#repository-urls)
+    - [(14.2) Write the recipe](#142-write-the-recipe)
+      - [Example recipe for merging two different repositories/branches](#example-recipe-for-merging-two-different-repositoriesbranches)
+    - [(14.3) Install 'git-build-recipe' and test the recipe](#143-install-git-build-recipe-and-test-the-recipe)
+    - [(14.4) Create the recipe on Launchpad](#144-create-the-recipe-on-launchpad)
+  - [Packaging using a Debian uscan file ('debian/watch')](#packaging-using-a-debian-uscan-file-debianwatch)
+    - [Testing and troubleshooting with 'uscan'](#testing-and-troubleshooting-with-uscan)
+    - [Add a new upstream release to a repository using 'gbp' and 'uscan'](#add-a-new-upstream-release-to-a-repository-using-gbp-and-uscan)
+  - [Layouts for Git packaging repositories](#layouts-for-git-packaging-repositories)
+    - [DEP-14 style or prestine-tar layout](#dep-14-style-or-prestine-tar-layout)
+    - [The overlay layout](#the-overlay-layout)
+  - [Configuring 'git-buildpackage' (gbp)](#configuring-git-buildpackage-gbp)
+    - [Common configuration for prestine-tar layout](#common-configuration-for-prestine-tar-layout)
+    - [Common configuration for overlay layout](#common-configuration-for-overlay-layout)
+  - [Renaming the orig tarball properly using 'mk-origtargz'](#renaming-the-orig-tarball-properly-using-mk-origtargz)
+  - [Downloading the orig tarball of a Debian package from various sources using 'origtargz'](#downloading-the-orig-tarball-of-a-debian-package-from-various-sources-using-origtargz)
+  - [About Launchpad's builders](#about-launchpads-builders)
+  - [How to set up 'pbuilder'](#how-to-set-up-pbuilder)
+    - [Building a binary package using 'pbuilder'](#building-a-binary-package-using-pbuilder)
+  - [Using a 'LXD container' to packaging in an latest development version of Ubuntu](#using-a-lxd-container-to-packaging-in-an-latest-development-version-of-ubuntu)
+  - [Reference](#reference)
+
 # Creating packages for Ubuntu
 
 ## (1) Create and configure your account on Launchpad
@@ -34,14 +118,12 @@ We need to install essential packaging-related software. This includes:
 ### (2.1) Install the essential packages
 
 ```sh
-sudo apt install gnupg pbuilder ubuntu-dev-tools apt-file
+sudo apt install gnupg ubuntu-dev-tools
 ```
 
 It installs:
 - 'gnupg' - GNU Privacy Guard contains tools you will need to create a cryptographic key with which you will sign files you want to upload to Launchpad.
-- 'pbuilder' - a tool to do reproducible builds of a package in a clean and isolated environment.
 - 'ubuntu-dev-tools' (and 'devscripts', a direct dependency) - a collection of tools that make many packaging tasks easier.
-- 'apt-file' - provides an easy way to find the binary package that contains a given file.
 
 ### (2.2) Export configuration variables for these tools
 
@@ -62,7 +144,7 @@ In some part of the process (when uploading a source package to Launchpad) you n
 
 GPG stands for GNU Privacy Guard and it implements the OpenPGP standard which allows you to sign and encrypt messages and files.
 
-Find more information at [https://help.launchpad.net/YourAccount/ImportingYourPGPKey](https://help.launchpad.net/YourAccount/ImportingYourPGPKey).
+Find more information at [YourAccount/ImportingYourPGPKey](https://help.launchpad.net/YourAccount/ImportingYourPGPKey).
 
 ### (3.1) Create a GPG key
 
@@ -164,6 +246,16 @@ fbSENme/M9Nk1fqsuG5OLkCOFPx8jCJHJWW4LO4PNFcu7m/fJKSUp938/tW/LAnb
 Finally click the 'Confirm' button and Launchpad will complete the import of your OpenPGP key.
 
 ### How to create a backup of your GPG keys
+
+#### Copying the ~/.gnupg
+
+The easiest way would be to grab the entire GnuPG directory '~/.gnupg', it contains all private keys you have, as well as the public keyring and other useful data (trustdb, etc.):
+
+```sh
+cp -r ~/.gnupg <dst-location>
+```
+
+#### Export and import commands
 
 GPG keys, secret keys, subkeys and ownertrust can be exported and imported again using the following commands:
 
@@ -273,7 +365,7 @@ sudo apt-get install dh-make
 
 ### (7.2) Debianize from the tarball using the plugin
 
-'dh_make' will generate a 'debian/' subdirectory and the necessary control files in the program source directory. Those control files are customized with the packagename and version extracted from the directory name. Also, as we will see below, it will create the '.orig.tar.gz' file making a copy of the tarball that we've already downloaded.
+'dh_make' will generate a 'debian/' subdirectory and the necessary control files in the program source directory. Those control files are customized with the packagename and version extracted from the directory name. Also, as we will see below, it will create the original source file ('.orig.tar.gz') by making a copy of the upstream tarball that we've already downloaded.
 
 NOTE: 'dh_make' will obtain the username and e-mail address from 'DEBFULLNAME' and 'DEBEMAIL' respectively.
 
@@ -286,15 +378,15 @@ cd hello-2.12
 # create
 dh_make -f ../hello-2.12.tar.gz
 # Type of package: (single, indep, library, python)
-# [s/i/l/p]?
+# [s/i/l/p]?    <--- ANSWER: s
 # Maintainer Name     : Aldo Paz
-# Email-Address       : estebanpazutn@gmail.com
+# Email-Address       : aldo.paz@noemail.org
 # Date                : Wed, 25 May 2022 14:57:49 -0300
 # Package Name        : hello
 # Version             : 2.12
 # License             : blank
 # Package Type        : single
-# Are the details correct? [Y/n/q]
+# Are the details correct? [Y/n/q]    <--- ANSWER: y
 # Done. Please edit the files in the debian/ subdirectory now.
 
 tree ..
@@ -326,7 +418,7 @@ tree ..
 # └── hello-2.12.tar.gz
 ```
 
-The command above also copied 'hello-2.12.tar.gz' to 'hello_2.12.orig.tar.gz' because this is the file (a pristine copy of the upstream source package) required when creating a source package for debian.
+The command above also copied 'hello-2.12.tar.gz' to 'hello_2.12.orig.tar.gz'. This '.orig.tar.gz' file is known as the original source (a pristine copy of the upstream source package) and is the file required when creating a source package for debian.
 
 ### Requirement: the package-version/ directory name format
 
@@ -351,7 +443,7 @@ will gracefully handle almost any upstream tarball.
 
 The original archive (.orig.tar.gz) is needed for other Debian tools to generate the diffs to the original sources required by the Debian packaging format. Unless there are reasons against it, this file should be the pristine upstream archive.
 
-'dh_make' makes sure a original source archive (packagename_version.orig.tar.gz) exists in parent directory. The archive can either end with .gz or one of the other supported compression extensions such as bz2 or lzma. If no such file exists, the file specified with '-f' is copied in place.
+'dh_make' makes sure a original source archive (packagename_version.orig.tar.gz) exists in parent directory. The archive can either end with .gz or one of the other supported compression extensions such as bz2 or lzma. **If no such file exists, the file specified with '-f' is copied in place**.
 
 If 'dh_make' doesn't find a way to get the '../packagename_version.orig.tar.gz' tarball, you will see a message like it:
 
@@ -370,9 +462,7 @@ At this point the maintainer should customize the template files generated insid
 Most of the files 'dh_make' adds are only needed for specialist packages (such as Emacs modules) so we can start by removing the optional example files:
 
 ```sh
-cd ./debian
-rm *ex *EX
-cd ..
+rm ./debian/*ex ./debian/*EX
 ```
 
 It deleted the following files:
@@ -436,7 +526,9 @@ For example, 2.10-0ubuntu1 means
 - Debian version 0,
 - Ubuntu version 1.
 
-Also change 'unstable' to the target development Ubuntu release (usually the current). I'll use 'hirsute' here.
+Also change 'unstable' to the target development Ubuntu release (usually the current). I'll use 'jammy' here.
+
+Finally change the urgency to 'urgency=medium', 'low' isn't really used in Ubuntu.
 
 NOTE: If we want to upload this source package to a PPA in Launchpad, then the target Ubuntu release in the changelog entry needs to specify one of the supported series. We have to check [https://launchpad.net/ubuntu/+ppas](https://launchpad.net/ubuntu/+ppas) to find the series currently supported by PPAs. If we specify a different series the build will fail.
 
@@ -483,9 +575,9 @@ Changed 'debian/control' from:
 Source: hello
 Section: unknown
 Priority: optional
-Maintainer: Aldo Paz <estebanpazutn@gmail.com>
+Maintainer: Aldo Paz <aldo.paz@noemail.org>
 Build-Depends: debhelper-compat (= 13), autotools-dev
-Standards-Version: 4.5.1
+Standards-Version: 4.6.0
 Homepage: <insert the upstream URL, if relevant>
 #Vcs-Browser: https://salsa.debian.org/debian/hello
 #Vcs-Git: https://salsa.debian.org/debian/hello.git
@@ -504,9 +596,9 @@ to:
 Source: hello
 Section: devel
 Priority: optional
-Maintainer: Aldo Paz <estebanpazutn@gmail.com>
+Maintainer: Aldo Paz <aldo.paz@noemail.org>
 Build-Depends: debhelper-compat (= 13)
-Standards-Version: 4.5.1
+Standards-Version: 4.6.0
 Homepage: http://www.gnu.org/software/hello/
 Rules-Requires-Root: no
 
@@ -534,17 +626,17 @@ hello (2.12-1) unstable; urgency=medium
 
   * Initial release (Closes: #nnnn)  <nnnn is the bug number of your ITP>
 
- -- Aldo Paz <estebanpazutn@gmail.com>  Thu, 26 May 2022 20:08:29 -0300
+ -- Aldo Paz <aldo.paz@noemail.org>  Wed, 08 Jun 2022 22:42:27 -0300
 ```
 
 to:
 
 ```
-hello (2.12-0ubuntu1) hirsute; urgency=low
+hello (2.12-0ubuntu1) jammy; urgency=low
 
   * Initial packaging.
 
- -- Aldo Paz <estebanpazutn@gmail.com>  Thu, 26 May 2022 20:08:29 -0300
+ -- Aldo Paz <aldo.paz@noemail.org>  Wed, 08 Jun 2022 22:42:27 -0300
 ```
 
 Changed 'debian/rules' from:
@@ -595,6 +687,8 @@ override_dh_autoreconf:
 Changed 'debian/README.Debian', I deleted it.
 
 Changed 'debian/README.source', I deleted it.
+
+I deleted ex and EX files from debian/ directory with `rm ./debian/*ex ./debian/*EX`.
 
 Changed 'debian/copyright' to:
 
@@ -710,38 +804,45 @@ debuild -us -uc -nc
 #...
 ```
 
+If we need to run the clean target first, we can run `debuild -- clean` (internally it invokes `dpkg-buildpackage --rules-target clean -us -uc -ui` which calls `debian/rules clean`).
+
 ## (12) Build a signed, source-only .changes file
 
-Since we are going to upload to a PPA (Personal Package Archive) the upload will need to be signed to allow Launchpad to verify that the upload comes from you.
+**We can upload signed, source packages only to Launchpad**. Launchpad builds the packages onsite, and does not accept 'deb' files.
 
-NOTE: For signing to work you need to have set up GPG (step 3).
+Since we are going to upload to a PPA (Personal Package Archive), the upload needs to be signed to allow Launchpad to verify that the upload comes from you. It means we have to make a signed, source-only '_source.changes' file (aka. the upload file) that Launchpad will accept.
+
+NOTE: For signing to work we need to have set up GPG (step 3).
 
 'debuild' (from 'devscripts') will invoke 'debsign' after completing a successful build (and when not invoked with the '-uc' and '-us' options). This is easier than running 'debsign' yourself, and usually works well, as long as you don't sign the packages on a different machine from the one used to build them.
 
+The correct command for creating the Debian package source is `debuild -S`. At least specifically said, 'debuild' will generate both binary and source packages and so the '.changes' file it generates will contain both source and binary and Launchpad will reject it. To generate a source-only '_source.changes' file we have to add the '-S' flag (and the '-sa' option just to make sure the '.orig.tar.gz' file is listed in the '_source.changes' file too). Also we would like to add '-d' to not check build dependencies and conflicts, because we already know the package builds correctly locally.
+
 NOTE: the upload file (_source.changes) will be signed because the '-us' and '-uc' flags are not passed to 'debuild' like they were before.
-
-Also note **we can upload signed, source packages only to Launchpad**. It means we have to make a signed, source-only '_source.changes' file (aka. the upload file) that Launchpad will accept.
-
-NOTE: At least specifically said, 'debuild' will generate both binary and source packages and so the '.changes' file it generates will contain both source and binary and Launchpad will reject it. To generate a source-only '_source.changes' file we have to add the '-S' flag. Also you would like to add '-d' to not check build dependencies and conflicts, because we already know the package builds correctly locally.
 
 ```sh
 # Build source-only package and sign it
-debuild -S -d
+debuild -S -sa -d
 # ...
 # Now signing changes and any dsc files...
-#  signfile dsc hello_2.12-0ubuntu1.dsc Aldo Paz <estebanpazutn@gmail.com>
+#  signfile dsc hello_2.12-0ubuntu1.dsc Aldo Paz <aldo.paz@noemail.org>
 
 #  fixup_buildinfo hello_2.12-0ubuntu1.dsc hello_2.12-0ubuntu1_source.buildinfo
-#  signfile buildinfo hello_2.12-0ubuntu1_source.buildinfo Aldo Paz <estebanpazutn@gmail.com>
+#  signfile buildinfo hello_2.12-0ubuntu1_source.buildinfo Aldo Paz <aldo.paz@noemail.org>
 
 #  fixup_changes dsc hello_2.12-0ubuntu1.dsc hello_2.12-0ubuntu1_source.changes
 #  fixup_changes buildinfo hello_2.12-0ubuntu1_source.buildinfo hello_2.12-0ubuntu1_source.changes
-#  signfile changes hello_2.12-0ubuntu1_source.changes Aldo Paz <estebanpazutn@gmail.com>
+#  signfile changes hello_2.12-0ubuntu1_source.changes Aldo Paz <aldo.paz@noemail.org>
 
 # Successfully signed dsc, buildinfo, changes files
 ```
 
-This command also generates three files:
+The options means:
+ - '-S' - Equivalent to '--build=source'.
+ - '-sa' - Forces the inclusion of the original source (the '.orig.tar.gz' file).
+ - '-d' - Do not check build dependencies and conflicts.
+
+This command also generates three files, specific for the source-only package build:
 
 ```sh
 ls ..
@@ -751,7 +852,19 @@ ls ..
 # hello_2.12-0ubuntu1_source.buildinfo
 ```
 
-See [Uploading in the ubuntu wiki](https://wiki.ubuntu.com/UbuntuDevelopment/Uploading) for more information.
+See [Packaging/PPA/BuildingASourcePackage](https://help.launchpad.net/Packaging/PPA/BuildingASourcePackage) and [Packaging/PPA/Uploading](https://wiki.ubuntu.com/UbuntuDevelopment/Uploading) for more information.
+
+### Options when creating a "brand new package" vs "derivative of a package that's already in Ubuntu's primary archive"
+
+How we build your package depends on whether we're creating a brand new package or we're creating a derivative of a package that's already in Ubuntu's primary archive.
+
+If we're creating an alternative version of a package that's already in Ubuntu's primary archive, we don't need to upload the '.orig.tar.gz' file (the original source).
+
+So, the options we can use to build a source-only package for ubuntu are:
+- `debuild -S -sa` - brand new package with no existing version in Ubuntu's repositories (will be uploaded with the '.orig.tar.gz' file).
+- `debuild -S -sd` - builds an alternative version of an existing package (will be uploaded without the .orig.tar.gz file).
+
+NOTE: If we get the error "clearsign failed: secret key not available" when signing the changes file, use an additional option '-k[key_id]' when calling 'debuild'. Use `gpg --list-secret-keys` to get the key ID. Look for a line like "sec 12345/12ABCDEF"; the part after the slash is the key ID.
 
 ### Alternative way of signing using 'debsign' manually
 
@@ -763,7 +876,9 @@ The signature consists of two parts. The first is the signature on the '.dsc' fi
 
 **'debsign' will take the 'Changed-By' entry from the '_source.changes' file, and ask GPG to sign the two parts with the key that has a UID matching that value. The UID must be byte-for-byte identical to the 'Changed-By' value (including the key "comment"), so any changes in the name or email address (even down to whitespace) will cause the match to fail. If that happens then GPG will report that it can't find the needed secret key**.
 
-## (13) Upload the source package to a PPA
+## (13) Publishing into a PPA on Launchpad - Alternative 1 - Upload the source package to a PPA
+
+NOTE: Before to proceed, we should have confirmed that our build works by testing it locally.
 
 Once we've created our source package, we could upload it and Launchpad will build binaries and then host them in our own apt repository (it is a PPA, a a Personal Package Archive). It also gives an easy way for us and others to test the binary packages.
 
@@ -773,19 +888,23 @@ See [Packaging/PPA](https://help.launchpad.net/Packaging/PPA) for details.
 
 ### (13.1) Create/Activate a PPA in Launchpad
 
-NOTE: Every individual and team in Launchpad can have one or more PPAs, each with its own URL.
+Every individual and team in Launchpad can have one or more PPAs, each with its own URL. Before we can start using a PPA, whether it's your own or it belongs to a team, we need to activate it on our profile page or the team's overview page. In my case I have to go to [https://launchpad.net/~apaz/+activate-ppa](https://launchpad.net/~apaz/+activate-ppa) (or by clicking "Create a new PPA" link inside our profile page).
 
-NOTE: Launchpad generates a unique key for each PPA and uses it to sign any packages built in that PPA. This means that people downloading/installing packages from a PPA can verify their source. After activating a PPA, uploading its first package causes Launchpad to start generating the key, which can take up to a couple of hours to complete.
+NOTE: If we already have one or more PPAs, this is also where we'll be able to create additional archives.
 
-In my case I have to go to [https://launchpad.net/~apaz/+activate-ppa](https://launchpad.net/~apaz/+activate-ppa) to create a new PPA.
+NOTE: Launchpad generates a unique key for each PPA and uses it to sign any packages built in that PPA. This means that people downloading/installing packages from a PPA can verify their source. **After activating a PPA, uploading its first package causes Launchpad to start generating the key, which can take up to a couple of hours to complete**.
 
-```sh
-# bzr push lp:~<lp-username>/+junk/hello-package
-```
+For this example I've created a PPA called 'test' located on [https://launchpad.net/~apaz/+archive/ubuntu/test](https://launchpad.net/~apaz/+archive/ubuntu/test).
 
-TODO
+### The PPAs' main site
+
+See [https://launchpad.net/ubuntu/+ppas](https://launchpad.net/ubuntu/+ppas) to find:
+- The most active PPAs,
+- and the series currently supported.
 
 ### (13.2) Upload the source package to the PPA
+
+Once activated, we can upload our source packages with a command like `dput ppa:<lp-username>/<ppa-name> <source.changes>`. For this example the format will be `dput ppa:apaz/test <source.changes>`.
 
 NOTE: Launchpad does not allow uploading pre-built binary packages.
 
@@ -797,10 +916,27 @@ Packages we publish in our PPA will remain there until
 - or the version of Ubuntu against which they're built becomes obsolete.
 
 ```sh
-# dput ppa:<lp-username>/<ppa-name> hello_2.10-0ubuntu1.changes
+cd ..
+
+dput ppa:apaz/test hello_2.12-0ubuntu1_source.changes
+# D: Splitting host argument out of  ppa:apaz/test.
+# D: Setting host argument.
+# Checking signature on .changes
+# gpg: /home/apaz/repos/temp/hello_2.12-0ubuntu1_source.changes: Valid signature from AADB3BFE17758171
+# Checking signature on .dsc
+# gpg: /home/apaz/repos/temp/hello_2.12-0ubuntu1.dsc: Valid signature from AADB3BFE17758171
+# Uploading to ppa (via ftp to ppa.launchpad.net):
+#   Uploading hello_2.12-0ubuntu1.dsc: done.
+#   Uploading hello_2.12.orig.tar.gz: done.
+#   Uploading hello_2.12-0ubuntu1.debian.tar.xz: done.
+#   Uploading hello_2.12-0ubuntu1_source.buildinfo: done.
+#   Uploading hello_2.12-0ubuntu1_source.changes: done.
+# Successfully uploaded packages.
 ```
 
-TODO
+After this, If everything goes well, we should receive an email with a subject similar to this: "\[~apaz/ubuntu/test/jammy\] hello 2.12-0ubuntu1 (Accepted)".
+
+It could take time before Launchpad builds the binary package and before to be able to install it.
 
 See [Packaging/PPA/Uploading](https://help.launchpad.net/Packaging/PPA/Uploading) for details.
 
@@ -808,17 +944,46 @@ See [Packaging/PPA/Uploading](https://help.launchpad.net/Packaging/PPA/Uploading
 
 Ubuntu users can install your packages in just the same way they install standard Ubuntu packages and they'll automatically receive updates as and when we make them.
 
-TODO
+NOTE: **Once the Launchpad build page finally says the package is built, it's finally safe to run the usual 'apt-get update'**.
+
+Example:
+
+```sh
+sudo add-apt-repository ppa:apaz/test
+sudo apt update
+```
 
 See [Packaging/PPA/InstallingSoftware](https://help.launchpad.net/Packaging/PPA/InstallingSoftware) for details.
 
-### The PPAs' main site
+### How to remove a PPA repository
 
-See [https://launchpad.net/ubuntu/+ppas](https://launchpad.net/ubuntu/+ppas) to find:
-- The most active PPAs,
-- and the series currently supported.
+Example:
 
-## (13) Publish the code at Launchpad
+```sh
+sudo add-apt-repository --remove ppa:apaz/test
+sudo apt update
+```
+
+## (14) Publishing into a PPA on Launchpad - Alternative 2 - Create the source package using a recipe (aka. daily build)
+
+NOTE: Before to proceed, we should have confirmed that our build works by testing it locally.
+
+The recipe is a simple description of what steps are needed to construct a package from Bazaar or Git branches. It specifies:
+- which branch to use to extract the source code
+- which branch to use to find the packaging information
+- which version to give the package
+- what to modify to make the source build properly
+
+To create a source package recipe, we need:
+- a repository in Launchpad (either hosted directly on Launchpad or imported from elsewhere)
+- a branch (it can be either a Bazaar or Git branch) with buildable code
+- a recipe
+
+NOTE: Source package builds is the name of this Launchpad feature. Most source package builds are automatically built each day and we'll see those referred to as "daily builds" because it allows to get an automatic build on every day the source changes, which is then published in the corresponding PPA.
+
+See [Packaging/SourceBuilds](https://help.launchpad.net/Packaging/SourceBuilds), [Packaging/SourceBuilds/GettingStarted](https://help.launchpad.net/Packaging/SourceBuilds/GettingStarted) and [Packaging/SourceBuilds/Recipes](https://help.launchpad.net/Packaging/SourceBuilds/Recipes) for details.
+
+### (14.1) Publish the code on Launchpad
 
 Using Launchpad, we can publish Bazaar branches or Git repositories of your code and, optionally, associate them with [Launchpad's projects](https://help.launchpad.net/Projects/Registering). You can also mirror Bazaar branches that are hosted elsewhere on the internet and even import git, Subversion and CVS repositories into Bazaar branches.
 
@@ -826,43 +991,298 @@ Using Launchpad, we can publish Bazaar branches or Git repositories of your code
 
 In the following steps we will upload our code in a personal git repository. We can see our git repositories at https://code.launchpad.net/~OWNER/+git, for example [https://code.launchpad.net/~apaz/+git](https://code.launchpad.net/~apaz/+git).
 
-See [Code/Git in Launchpad](https://help.launchpad.net/Code/Git) for details about managing git repositories on Launchpad.
+See [Code/Git](https://help.launchpad.net/Code/Git) for details about managing git repositories on Launchpad.
 
-### (13.1) Initialize a git repository at a clean project
+#### (14.1.1) Maintain a Debian package in git with 'git-buildpackage' (gbp)
 
-First make sure you have a clean source package with the debian directory:
+NOTE: It is not mandatory to use git-buildpackage, but the tool is easy to use and also used for CI/CD.
+
+DEP-14 describes a convention for branch layout that can be maintained with 'gbp'. This specification basically has the following principles:
+- Each "vendor" uses its own namespace for its packaging related Git branches and tags: 'debian/\*' for Debian, 'ubuntu/\*' for Ubuntu, and so on.
+- Packages uploaded to the current development release should be prepared in either a '\<vendor\>/latest' or '\<vendor\>/\<suite\>' branch, where '\<suite\>' is the suite name of the target distribution. Coexistence of '\<vendor\>/latest' and '\<vendor\>/\<suite\>' branches is accepted only if the latter are short-lived, i.e. they exist only until they are merged into '\<vendor\>/latest' or until the version in the target distribution is replaced by the version in '\<vendor\>/latest'. In Debian this means that uploads to unstable and experimental should be prepared either in the 'debian/latest' branch or respectively in the 'debian/unstable' and 'debian/experimental' branches.
+- If the Git workflow in use imports the upstream sources from released tarballs, this should be done under the "upstream" namespace. By default, the latest upstream version should be imported in the 'upstream/latest' branch and when packages for multiple upstream versions are maintained concurrently, one should create as many upstream branches as required. Their name should be based on the major upstream version tracked: for example when upstream maintains a stable 1.2 branch and releases 1.2.x minor releases in that branch, those releases should be imported in a 'upstream/1.2.x' branch (the ".x" suffix makes it clear that we are referring to a branch and not to the tag corresponding the upstream 1.2 release). If the upstream developers use codenames to refer to their releases, the upstream branches can be named according to those codenames.
+
+One of the advantages of the DEP-14 branch layout is that it easily allows mixing upstream development and Debian patching in the same repository without mixing Debian packaging files with upstream files.
+
+In this example we will be creating a git repository and importing the uptream tarball by hand:
 
 ```sh
-cd ..
-mv hello-2.12 temp
-tar xzf hello-2.12.tar.gz
-cd hello-2.12
-mv ../temp/debian .
+# create a git repo for both upstream sources and packaging information
+mkdir ../hello
+cd $_
+
 git init
+
+gbp import-orig \
+  --debian-branch=debian/latest \
+  --upstream-branch=upstream/latest \
+  ../hello_2.12.orig.tar.gz
+# What will be the source package name? [hello]
+# What is the upstream version? [2.12]
+# gbp:info: Importing '../hello_2.12.orig.tar.gz' to branch 'upstream/latest'...
+# gbp:info: Source package is hello
+# gbp:info: Upstream version is 2.12
+# gbp:info: Successfully imported version 2.12 of ../hello_2.12.orig.tar.gz
+
+
+
+# checking
+git branch
+# * debian/latest
+#   upstream/latest
+git tag
+# upstream/2.12
+ls
+# ABOUT-NLS   ChangeLog.O   COPYING      lib          man         src
+# aclocal.m4  config.in     doc          m4           NEWS        tests
+# AUTHORS     configure     GNUmakefile  maint.mk     po          THANKS
+# build-aux   configure.ac  hello.1      Makefile.am  README      TODO
+# ChangeLog   contrib       INSTALL      Makefile.in  README-dev
+
+
+
+# copy debian/ dir
+mv ../hello-2.12/debian/ .
 git add .
-git commit -m "Initial commit"
+git commit -m "Initial packaging information"
 ```
 
-### (13.2) Push into a personal respository on Launchpad
+There exists another alternative of downloading and import a new upstream version using the information from 'debian/watch' with the option '--uscan'. See `man gbp-import-orig` and [DEP-14](https://dep-team.pages.debian.net/deps/dep14/) for details.
+
+##### Adding entries to 'debian/changelog' using 'gbp'
+
+The command 'gbp dch' generates Debian changelog entries from git commit messages. It means that all commits (not registered in the previous version) will be written in the 'debian/changelog'.
+
+The following example shows examples of:
+- using this command without commits since the last commited change of the changelog - this updates the current release entry, similar to `dch -r ""`.
+- using this command after few example commits - this adds a new release entry, with new entries (the bullet points, entries with the '*' character in front) for each commit message.
+
+```sh
+# Test without commits since last update of 'debian/changelog'
+gbp dch \
+  --debian-branch=debian/latest
+# gbp:info: Changelog last touched at '23d11f4a7b6e695bbdcacd7e2ffa8d5fdcf9957f'
+# gbp:info: Continuing from commit '23d11f4a7b6e695bbdcacd7e2ffa8d5fdcf9957f'
+# gbp:info: No changes detected from 23d11f4a7b6e695bbdcacd7e2ffa8d5fdcf9957f to HEAD.
+
+git diff
+# diff --git a/debian/changelog b/debian/changelog
+# index 3d5fcb2..2d7f4e1 100644
+# --- a/debian/changelog
+# +++ b/debian/changelog
+# @@ -1,6 +1,5 @@
+# -hello (2.12-0ubuntu1) jammy; urgency=low
+# +hello (2.12-0ubuntu1) jammy; urgency=medium
+#
+#    * Initial packaging.
+#
+# - -- Aldo Paz <aldo.paz@noemail.org>  Wed, 08 Jun 2022 22:42:27 -0300
+# -
+# + -- Aldo Paz <aldo.paz@noemail.org>  Thu, 16 Jun 2022 02:29:37 -0300
+
+
+
+# Test with example commits
+git commit --allow-empty -m "New changes"
+# [debian/latest ae29afc] New changes
+git commit --allow-empty -m "More changes"
+# [debian/latest 8f635d0] More changes
+
+# gbp dch \
+#   --debian-branch=debian/latest \
+#   --new-version=2.12-0ubuntu2
+# or...
+gbp dch \
+  --debian-branch=debian/latest
+# gbp:info: Changelog last touched at '23d11f4a7b6e695bbdcacd7e2ffa8d5fdcf9957f'
+# gbp:info: Continuing from commit '23d11f4a7b6e695bbdcacd7e2ffa8d5fdcf9957f'
+
+cat debian/changelog
+# hello (2.12-0ubuntu2) UNRELEASED; urgency=medium
+#
+#   * New changes
+#   * More changes
+#
+#  -- Aldo Paz <aldo.paz@noemail.org>  Thu, 16 Jun 2022 02:38:15 -0300
+#
+# hello (2.12-0ubuntu1) jammy; urgency=low
+#
+#   * Initial packaging.
+#
+#  -- Aldo Paz <aldo.paz@noemail.org>  Wed, 08 Jun 2022 22:42:27 -0300
+```
+
+As we can see above `gbp dch` increments the version automatically but, if necessary, we could specify the version using the parameter '--new-version=\<version\>'.
+
+##### Git clone, commit, and tag using 'gbp'
+
+We can use commands like 'gbp clone', 'gbp dch --commit', 'gbp tag' (or 'gbp buildpackage --git-tag-only'), 'gbp pull' and 'gbp push' to do common git tasks.
+
+For example we can create a new version and commit everything using 'git dch --commit', then we could tag this commit with the same version of the package using `gbp buildpackage --git-tag-only` (its name will be "debian/X.X").
+
+NOTE: The commands `gbp tag --debian-branch=debian/latest` and `gbp buildpackage --git-tag-only` do the same thing. The later doesn't build, only tag and run post-tag hooks.
+
+Example:
+
+Before to execute 'gbp clone' I had to configure the default branch of the repository in Launchpad. I had to go to https://code.launchpad.net/~apaz/+git/hello', click "Change repository details" and change the "Default branch" value from "refs/heads/master" to "debian/latest", and finally saved the changes clicking "Change Git Repository".
+
+```sh
+# Clone the repository and set up tracking branches for the debian (default branch: master) and upstream (default branch: upstream) branches
+# options:
+#   --all - Track all branches, not only debian and upstream.
+#   --debian-branch=branch_name - The branch in the Git repository the Debian package is being developed on, default is master.
+#   --upstream-branch=branch_name - The branch in the Git repository the upstream sources are put onto. Default is upstream.
+#   --pristine-tar - Track pristine tar branch.
+gbp clone \
+  --verbose \
+  --all \
+  --debian-branch=debian/latest \
+  --upstream-branch=upstream/latest \
+  git+ssh://apaz@git.launchpad.net/~apaz/+git/hello
+# gbp:debug: ['git', 'rev-parse', '--show-cdup']
+# gbp:info: Cloning from 'git+ssh://apaz@git.launchpad.net/~apaz/+git/hello'
+# gbp:debug: ['git', 'clone', '--quiet', 'git+ssh://apaz@git.launchpad.net/~apaz/+git/hello']
+# gbp:debug: ['git', 'rev-parse', '--show-cdup']
+# gbp:debug: ['git', 'rev-parse', '--is-bare-repository']
+# gbp:debug: ['git', 'rev-parse', '--git-dir']
+# gbp:debug: ['git', 'rev-parse', '--show-cdup']
+# gbp:debug: ['git', 'rev-parse', '--is-bare-repository']
+# gbp:debug: ['git', 'rev-parse', '--git-dir']
+# gbp:debug: ['git', 'for-each-ref', '--format=%(refname:short)', 'refs/remotes/']
+# gbp:debug: ['git', 'show-ref', '--verify', 'refs/heads/HEAD']
+# gbp:debug: ['git', 'show-ref', '--verify', 'refs/heads/debian/latest']
+# gbp:debug: ['git', 'show-ref', '--verify', 'refs/heads/upstream/latest']
+# gbp:debug: ['git', 'branch', 'upstream/latest', 'origin/upstream/latest']
+# gbp:debug: ['git', 'show-ref', '--verify', 'refs/remotes/debian/latest']
+# gbp:debug: ['git', 'config', 'user.name', 'Aldo Paz']
+# gbp:debug: ['git', 'config', 'user.email', 'aldo.paz@noemail.org']
+# gbp:debug: ['git', 'ls-tree', '-z', '-r', '-l', 'HEAD', '--']
+cd hello/
+git branch -a
+# * debian/latest
+#   upstream/latest
+#   remotes/origin/HEAD -> origin/debian/latest
+#   remotes/origin/debian/latest
+#   remotes/origin/upstream/latest
+
+
+# Test 'gbp dch' with example commits
+git commit --allow-empty -m "New changes"
+# [debian/latest 4b02bdc] New changes
+git commit --allow-empty -m "More changes"
+# [debian/latest 54891c7] More changes
+
+gbp dch \
+  --debian-branch=debian/latest \
+  --commit
+# gbp:info: Changelog last touched at '23d11f4a7b6e695bbdcacd7e2ffa8d5fdcf9957f'
+# gbp:info: Continuing from commit '23d11f4a7b6e695bbdcacd7e2ffa8d5fdcf9957f'
+# gbp:info: Changelog committed for version 2.12-0ubuntu2
+
+
+# Check
+git log --oneline
+# 52b59b6 (HEAD -> debian/latest) Update changelog for 2.12-0ubuntu2 release
+# 54891c7 More changes
+# 4b02bdc New changes
+# 23d11f4 (origin/debian/latest, origin/HEAD) Initial packaging information
+# 9d36488 (origin/upstream/latest, upstream/latest) New upstream version 2.12
+git tag
+# (empty, no tags yet)
+
+
+# Tag the commit (its name will be "debian/X.X")
+# gbp tag --debian-branch=debian/latest
+# or
+gbp buildpackage \
+  --git-debian-branch=debian/latest \
+  --git-tag-only
+# gbp:info: Tagging Debian package 2.12-0ubuntu2 as debian/2.12-0ubuntu2 in git
+
+
+# Check
+git tag
+# debian/2.12-0ubuntu2
+git tag -n
+# debian/2.12-0ubuntu2 hello Debian release 2.12-0ubuntu2
+
+
+# Push the tags and their respective revisions (it does not updates the remote branches)
+# push the latest tag
+#   git push origin debian/2.12-0ubuntu2
+# or, push all local tags
+#   git push origin --tags
+# or, using gbp push...
+# options:
+#   --debian-branch=branch_name - The branch in the Git repository the Debian package is being developed on. If set to the empty value the branch will not be pushed.
+#   --debian-tag=TAG-FORMAT - Use this tag format when looking for tags corresponding to a Debian version. Default is debian/%(version)s. If set to the empty value the tag will not be pushed.
+#   --upstream-branch=branch_name - The branch in the Git repository the upstream sources are put onto. If set to the empty value the branch will not be pushed.
+#   --upstream-tag=TAG-FORMAT - Use this tag format when looking for tags of upstream versions. Default is upstream/%(version)s. If set to the empty value the tag will not be pushed.
+#   --pristine-tar - Whether to update the pristine-tar branch too.
+gbp push \
+  --verbose \
+  --debian-branch=debian/latest \
+  --upstream-branch=
+# gbp:debug: ['git', 'rev-parse', '--show-cdup']
+# gbp:debug: ['git', 'rev-parse', '--is-bare-repository']
+# gbp:debug: ['git', 'rev-parse', '--git-dir']
+# gbp:debug: ['git', 'symbolic-ref', 'HEAD']
+# gbp:debug: ['git', 'show-ref', 'refs/heads/debian/latest']
+# gbp:debug: ['git', 'config', 'branch.debian/latest.remote']
+# gbp:debug: ['git', 'config', 'branch.debian/latest.merge']
+# gbp:debug: ['git', 'tag', '-l', 'debian/2.12-0ubuntu2']
+# gbp:debug: ['git', 'tag', '-l', 'upstream/2.12']
+# gbp:info: Pushing debian/2.12-0ubuntu2 to origin
+# gbp:debug: ['git', 'push', 'origin', 'tag', 'debian/2.12-0ubuntu2']
+```
+
+Instead of using 'gbp', the tag can be done manually, the equivalent is `git tag -a debian/X.X -m "Update for X.X release"`. For this example, the equivalent command would be `git tag -a debian/2.12-0ubuntu2 -m "hello Debian release 2.12-0ubuntu2"`.
+
+See `man gbp-clone`, `man gbp-dch`, `man gbp-tag`, `man gbp-buildpackage`, `man gbp-pull` and `man gbp-push` for details.
+
+#### (14.1.3) Test building the package with 'gbp'
+
+```sh
+gbp buildpackage \
+  --git-debian-branch=debian/latest \
+  --git-export-dir=../build-area
+#...
+
+# checking
+ls ../build-area/
+# hello_2.12-0ubuntu1_amd64.build      hello_2.12-0ubuntu1.debian.tar.xz
+# hello_2.12-0ubuntu1_amd64.buildinfo  hello_2.12-0ubuntu1.dsc
+# hello_2.12-0ubuntu1_amd64.changes    hello_2.12.orig.tar.gz
+# hello_2.12-0ubuntu1_amd64.deb        hello-dbgsym_2.12-0ubuntu1_amd64.ddeb
+
+debc ../build-area/hello_2.12-0ubuntu1_amd64.changes
+# ...
+```
+
+We could add the option '--git-ignore-new' if we want to build the package even if some changes have not been commited. See `man gbp-buildpackage` for details.
+
+#### (14.1.2) Push into a personal respository on Launchpad
 
 ```sh
 # git remote add launchpad git+ssh://USER@git.launchpad.net/~OWNER/+git/REPOSITORY
+
 git remote add launchpad git+ssh://apaz@git.launchpad.net/~apaz/+git/hello
-git push launchpad master
-# Enumerating objects: 469, done.
-# Counting objects: 100% (469/469), done.
+git push launchpad --all
+# Enumerating objects: 473, done.
+# Counting objects: 100% (473/473), done.
 # Delta compression using up to 4 threads
-# Compressing objects: 100% (465/465), done.
-# Writing objects: 100% (469/469), 1.09 MiB | 60.00 KiB/s, done.
-# Total 469 (delta 125), reused 0 (delta 0), pack-reused 0
-# remote: Resolving deltas: 100% (125/125), done.
+# Compressing objects: 100% (468/468), done.
+# Writing objects: 100% (473/473), 1.09 MiB | 268.00 KiB/s, done.
+# Total 473 (delta 128), reused 0 (delta 0), pack-reused 0
+# remote: Resolving deltas: 100% (128/128), done.
 # To git+ssh://git.launchpad.net/~apaz/+git/hello
-#  * [new branch]      master -> master
+#  * [new branch]      debian/latest -> debian/latest
+#  * [new branch]      upstream/latest -> upstream/latest
 ```
 
-With the 'push' command above, the new repository should be accessible on 'https://code.launchpad.net/~apaz/+git/hello' and the corresponding cgit page on 'https://git.launchpad.net/~apaz/+git/hello'.
+With the 'push' command above, the new repository should be accessible, for example, on 'https://code.launchpad.net/~apaz/+git/hello' and the corresponding cgit page on 'https://git.launchpad.net/~apaz/+git/hello'.
 
-#### Defining an abbreviation for repositories hosted on Launchpad
+##### Defining an abbreviation for repositories hosted on Launchpad
 
 Edit '~/.gitconfig' and add these lines, where USER is your Launchpad username:
 
@@ -890,7 +1310,7 @@ instead of:
 git remote add launchpad git+ssh://apaz@git.launchpad.net/~apaz/+git/hello
 ```
 
-#### Repository URLs
+##### Repository URLs
 
 Every Git repository hosted on Launchpad has a full "canonical" URL of one of these forms (these are the versions you'd use in a web browser; you only need to change the scheme and host parts for the command-line Git client):
 
@@ -910,7 +1330,7 @@ Or a repository can be a person's or a team's default for a target, in which cas
 
 It is expected that projects hosting their code on Launchpad will normally have their primary repository set as the default for the project, and contributors will normally push to branches in owner-default repositories. The extra flexibility with named repositories allows for situations such as separate private repositories containing embargoed security fixes.
 
-## (14) Create a recipe in Launchpad
+### (14.2) Write the recipe
 
 A "recipe" in Launchpad is a description of the steps needed to construct a package from a set of Bazaar or Git branches. It allows to automatize the packaging and then host the builded packages.
 
@@ -921,20 +1341,683 @@ The format of a recipe specifies:
 - The correct _package version_ (so people can still upgrade to the new stable version when it's released).
 - What to modify to make the source build properly.
 
+There are different ways to write a recipe. The following is the most simple example, and will be the code for testing our repository build on Launchpad:
+
+```
+# git-build-recipe format 0.4 deb-version {debupstream}~{revno}
+lp:~apaz/+git/hello debian/latest
+```
+
+I saved the file as 'hello.recipe'. It assumes both the source code and the packaging information (the debian/ directory) exists in the same directory.
+
 See [Packaging/SourceBuilds/GettingStarted](https://help.launchpad.net/Packaging/SourceBuilds/GettingStarted) and [Packaging/SourceBuilds/Recipes](https://help.launchpad.net/Packaging/SourceBuilds/Recipes) for details.
 
-TODO
+#### Example recipe for merging two different repositories/branches
+
+For the following example we have to write a recipe that:
+- use the project's trunk, which contains no packaging,
+- and nest another branch that contains only packaging information.
+
+```
+# git-build-recipe format 0.4 deb-version {debupstream}~{revno}
+lp:~apaz/+git/hello
+merge packaging lp:~apaz/+git/hello-packaging
+```
+
+Where:
+- The first line tells Launchpad which recipe version we're using (in this case it's 0.3), along with how we want to name the resultant package.
+- The next line specifies the code branch, using Launchpad's short name system.
+- Finally, we specify where to find the packaging branch and say that we want to nest it into the code branch.
+
+### (14.3) Install 'git-build-recipe' and test the recipe
+
+NOTE: We should always test the recipe locally before sending it to Launchpad.
+
+We need 'git-build-recipe' to test the recipe locally:
+
+```sh
+sudo apt-get install git-build-recipe
+```
+
+The following processes the recipe and creates, inside the current directory, a directory called 'working-dir', into which it places the resulting source tree and source package:
+
+```sh
+cd ..
+
+vi hello.recipe
+# ... write the code of the recipe
+
+git-build-recipe --allow-fallback-to-native hello.recipe recipe-working-dir
+# ...
+```
+
+### (14.4) Create the recipe on Launchpad
+
+Browse to the branch you want to build in Launchpad and click "(+) Create packaging recipe".
+
+We have to configure the recipe writing the code of the recipe we tested before in the 'Recipe text:' field. Finaly click on 'Create Recipe'.
+
+For our example, the above steps created the recipe on [https://code.launchpad.net/~apaz/+recipe/hello-daily](https://code.launchpad.net/~apaz/+recipe/hello-daily).
+
+We could select "Build Now" in order to schedule a new build quickly.
+
+## Packaging using a Debian uscan file ('debian/watch')
+
+This file allows Debian QA tools to alert for new upstream releases and also git-buildpackage to easily download the new upstream releases.
+
+The file named watch in the debian directory is used to check for newer versions of upstream software is available and to download it if necessary. The download itself will be performed with the 'uscan' program from the 'devscripts' package.
+
+For this example, 'debian/watch' will be:
+
+```sh
+version=4
+
+http://ftp.gnu.org/gnu/hello/hello-(.*).tar.gz
+
+```
+
+The commands below shows how to run 'uscan' for downloading the version of upstream specified on 'debian/changelog' and the latest:
+
+```sh
+# create a new repository dir
+mkdir hello-packaging
+cd $_
+
+
+
+# copy the packaging information (debian/ directory) into the new repository
+cp -R ../hello-packaging-old/debian .
+
+# create the 'watch' file
+vi debian/watch
+#...
+
+
+
+# test it
+mkdir ../build-dir
+uscan --no-download --verbose --destdir ../build-dir
+# uscan info: uscan (version 2.22.1ubuntu1) See uscan(1) for help
+# uscan info: Scan watch files in .
+# uscan info: Check debian/watch and debian/changelog in .
+# uscan info: package="hello" version="2.12-0ubuntu1" (as seen in debian/changelog)
+# uscan info: package="hello" version="2.12" (no epoch/revision)
+# uscan info: ./debian/changelog sets package="hello" version="2.12"
+# uscan info: Process watch file at: debian/watch
+#     package = hello
+#     version = 2.12
+#     pkg_dir = .
+# uscan info: Last orig.tar.* tarball version (from debian/changelog): 2.12
+# uscan info: Last orig.tar.* tarball version (dversionmangled): 2.12
+# uscan info: Requesting URL:
+#    http://ftp.gnu.org/gnu/hello/
+# uscan info: Matching pattern:
+#    (?:(?:http://ftp.gnu.org)?\/gnu\/hello\/)?hello-(.*).tar.gz
+# uscan info: Found the following matching hrefs on the web page (newest first):
+#    http://ftp.gnu.org/gnu/hello/hello-2.12.1.tar.gz (2.12.1) index=2.12.1-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.12.1.tar.gz (2.12.1) index=2.12.1-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.12.tar.gz (2.12) index=2.12-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.12.tar.gz (2.12) index=2.12-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.11.tar.gz (2.11) index=2.11-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.11.tar.gz (2.11) index=2.11-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.10.tar.gz (2.10) index=2.10-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.10.tar.gz (2.10) index=2.10-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.9.tar.gz (2.9) index=2.9-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.9.tar.gz (2.9) index=2.9-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.8.tar.gz (2.8) index=2.8-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.8.tar.gz (2.8) index=2.8-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.7.tar.gz (2.7) index=2.7-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.7.tar.gz (2.7) index=2.7-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.6.tar.gz (2.6) index=2.6-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.6.tar.gz (2.6) index=2.6-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.5.tar.gz (2.5) index=2.5-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.5.tar.gz (2.5) index=2.5-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.4.tar.gz (2.4) index=2.4-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.4.tar.gz (2.4) index=2.4-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.3.tar.gz (2.3) index=2.3-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.3.tar.gz (2.3) index=2.3-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.2.tar.gz (2.2) index=2.2-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.2.tar.gz (2.2) index=2.2-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.1.1.tar.gz (2.1.1) index=2.1.1-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.1.1.tar.gz (2.1.1) index=2.1.1-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.1.0.tar.gz (2.1.0) index=2.1.0-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.1.0.tar.gz (2.1.0) index=2.1.0-1 
+#    http://ftp.gnu.org/gnu/hello/hello-1.3.tar.gz (1.3) index=1.3-1 
+#    http://ftp.gnu.org/gnu/hello/hello-1.3.tar.gz (1.3) index=1.3-1 
+# uscan info: Looking at $base = http://ftp.gnu.org/gnu/hello/ with
+#     $filepattern = hello-(.*).tar.gz found
+#     $newfile     = http://ftp.gnu.org/gnu/hello/hello-2.12.1.tar.gz
+#     $newversion  = 2.12.1
+#     $lastversion = 2.12
+# uscan info: Matching target for downloadurlmangle: http://ftp.gnu.org/gnu/hello/hello-2.12.1.tar.gz
+# uscan info: Upstream URL(+tag) to download is identified as    http://ftp.gnu.org/gnu/hello/hello-2.12.1.tar.gz
+# uscan info: Filename (filenamemangled) for downloaded file: hello-2.12.1.tar.gz
+# uscan: Newest version of hello on remote site is 2.12.1, local version is 2.12
+# uscan:  => Newer package available from:
+#         => http://ftp.gnu.org/gnu/hello/hello-2.12.1.tar.gz
+# uscan info: Scan finished
+
+
+
+# Download the latest version
+uscan --verbose --destdir ../build-dir
+# uscan info: uscan (version 2.22.1ubuntu1) See uscan(1) for help
+# uscan info: Scan watch files in .
+# uscan info: Check debian/watch and debian/changelog in .
+# uscan info: package="hello" version="2.12-0ubuntu1" (as seen in debian/changelog)
+# uscan info: package="hello" version="2.12" (no epoch/revision)
+# uscan info: ./debian/changelog sets package="hello" version="2.12"
+# uscan info: Process watch file at: debian/watch
+#     package = hello
+#     version = 2.12
+#     pkg_dir = .
+# uscan info: Last orig.tar.* tarball version (from debian/changelog): 2.12
+# uscan info: Last orig.tar.* tarball version (dversionmangled): 2.12
+# uscan info: Requesting URL:
+#    http://ftp.gnu.org/gnu/hello/
+# uscan info: Matching pattern:
+#    (?:(?:http://ftp.gnu.org)?\/gnu\/hello\/)?hello-(.*).tar.gz
+# uscan info: Found the following matching hrefs on the web page (newest first):
+#    http://ftp.gnu.org/gnu/hello/hello-2.12.1.tar.gz (2.12.1) index=2.12.1-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.12.1.tar.gz (2.12.1) index=2.12.1-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.12.tar.gz (2.12) index=2.12-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.12.tar.gz (2.12) index=2.12-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.11.tar.gz (2.11) index=2.11-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.11.tar.gz (2.11) index=2.11-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.10.tar.gz (2.10) index=2.10-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.10.tar.gz (2.10) index=2.10-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.9.tar.gz (2.9) index=2.9-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.9.tar.gz (2.9) index=2.9-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.8.tar.gz (2.8) index=2.8-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.8.tar.gz (2.8) index=2.8-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.7.tar.gz (2.7) index=2.7-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.7.tar.gz (2.7) index=2.7-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.6.tar.gz (2.6) index=2.6-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.6.tar.gz (2.6) index=2.6-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.5.tar.gz (2.5) index=2.5-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.5.tar.gz (2.5) index=2.5-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.4.tar.gz (2.4) index=2.4-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.4.tar.gz (2.4) index=2.4-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.3.tar.gz (2.3) index=2.3-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.3.tar.gz (2.3) index=2.3-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.2.tar.gz (2.2) index=2.2-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.2.tar.gz (2.2) index=2.2-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.1.1.tar.gz (2.1.1) index=2.1.1-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.1.1.tar.gz (2.1.1) index=2.1.1-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.1.0.tar.gz (2.1.0) index=2.1.0-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.1.0.tar.gz (2.1.0) index=2.1.0-1 
+#    http://ftp.gnu.org/gnu/hello/hello-1.3.tar.gz (1.3) index=1.3-1 
+#    http://ftp.gnu.org/gnu/hello/hello-1.3.tar.gz (1.3) index=1.3-1 
+# uscan info: Looking at $base = http://ftp.gnu.org/gnu/hello/ with
+#     $filepattern = hello-(.*).tar.gz found
+#     $newfile     = http://ftp.gnu.org/gnu/hello/hello-2.12.1.tar.gz
+#     $newversion  = 2.12.1
+#     $lastversion = 2.12
+# uscan info: Matching target for downloadurlmangle: http://ftp.gnu.org/gnu/hello/hello-2.12.1.tar.gz
+# uscan info: Upstream URL(+tag) to download is identified as    http://ftp.gnu.org/gnu/hello/hello-2.12.1.tar.gz
+# uscan info: Filename (filenamemangled) for downloaded file: hello-2.12.1.tar.gz
+# uscan: Newest version of hello on remote site is 2.12.1, local version is 2.12
+# uscan:  => Newer package available from:
+#         => http://ftp.gnu.org/gnu/hello/hello-2.12.1.tar.gz
+# uscan info: Not downloading, using existing file: hello-2.12.1.tar.gz
+# uscan info: Start checking for common possible upstream OpenPGP signature files
+# uscan warn: Possible OpenPGP signature found at:
+#    http://ftp.gnu.org/gnu/hello/hello-2.12.1.tar.gz.sig
+#  * Add opts=pgpsigurlmangle=s/$/.sig/ or opts=pgpmode=auto to debian/watch
+#  * Add debian/upstream/signing-key.asc.
+#  See uscan(1) for more details
+# uscan info: End checking for common possible upstream OpenPGP signature files
+# uscan info: Missing OpenPGP signature.
+# uscan info: New orig.tar.* tarball version (oversionmangled): 2.12.1
+# uscan info: Launch mk-origtargz with options:
+#    --package hello --version 2.12.1 --compression default --directory ../build-dir --copyright-file debian/copyright ../build-dir/hello-2.12.1.tar.gz
+# Leaving ../build-dir/hello_2.12.1.orig.tar.gz where it is.
+# uscan info: New orig.tar.* tarball version (after mk-origtargz): 2.12.1
+# uscan info: Scan finished
+
+
+
+# Download the current version
+uscan --download-current-version --verbose --destdir ../build-dir
+# uscan info: uscan (version 2.22.1ubuntu1) See uscan(1) for help
+# uscan info: Scan watch files in .
+# uscan info: Check debian/watch and debian/changelog in .
+# uscan info: package="hello" version="2.12-0ubuntu1" (as seen in debian/changelog)
+# uscan info: package="hello" version="2.12" (no epoch/revision)
+# uscan info: ./debian/changelog sets package="hello" version="2.12"
+# uscan info: Process watch file at: debian/watch
+#     package = hello
+#     version = 2.12
+#     pkg_dir = .
+# uscan info: Last orig.tar.* tarball version (from debian/changelog): 2.12
+# uscan info: Download the --download-current-version specified version: 2.12
+# uscan info: Requesting URL:
+#    http://ftp.gnu.org/gnu/hello/
+# uscan info: Matching pattern:
+#    (?:(?:http://ftp.gnu.org)?\/gnu\/hello\/)?hello-(.*).tar.gz
+# uscan info: Found the following matching hrefs on the web page (newest first):
+#    http://ftp.gnu.org/gnu/hello/hello-2.12.1.tar.gz (2.12.1) index=2.12.1-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.12.1.tar.gz (2.12.1) index=2.12.1-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.12.tar.gz (2.12) index=2.12-1 matched with the download version
+#    http://ftp.gnu.org/gnu/hello/hello-2.12.tar.gz (2.12) index=2.12-1 matched with the download version
+#    http://ftp.gnu.org/gnu/hello/hello-2.11.tar.gz (2.11) index=2.11-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.11.tar.gz (2.11) index=2.11-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.10.tar.gz (2.10) index=2.10-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.10.tar.gz (2.10) index=2.10-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.9.tar.gz (2.9) index=2.9-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.9.tar.gz (2.9) index=2.9-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.8.tar.gz (2.8) index=2.8-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.8.tar.gz (2.8) index=2.8-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.7.tar.gz (2.7) index=2.7-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.7.tar.gz (2.7) index=2.7-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.6.tar.gz (2.6) index=2.6-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.6.tar.gz (2.6) index=2.6-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.5.tar.gz (2.5) index=2.5-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.5.tar.gz (2.5) index=2.5-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.4.tar.gz (2.4) index=2.4-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.4.tar.gz (2.4) index=2.4-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.3.tar.gz (2.3) index=2.3-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.3.tar.gz (2.3) index=2.3-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.2.tar.gz (2.2) index=2.2-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.2.tar.gz (2.2) index=2.2-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.1.1.tar.gz (2.1.1) index=2.1.1-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.1.1.tar.gz (2.1.1) index=2.1.1-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.1.0.tar.gz (2.1.0) index=2.1.0-1 
+#    http://ftp.gnu.org/gnu/hello/hello-2.1.0.tar.gz (2.1.0) index=2.1.0-1 
+#    http://ftp.gnu.org/gnu/hello/hello-1.3.tar.gz (1.3) index=1.3-1 
+#    http://ftp.gnu.org/gnu/hello/hello-1.3.tar.gz (1.3) index=1.3-1 
+# uscan info: Looking at $base = http://ftp.gnu.org/gnu/hello/ with
+#     $filepattern = hello-(.*).tar.gz found
+#     $newfile     = http://ftp.gnu.org/gnu/hello/hello-2.12.tar.gz
+#     $newversion  = 2.12
+#     $lastversion = 2.12
+# uscan info: Matching target for downloadurlmangle: http://ftp.gnu.org/gnu/hello/hello-2.12.tar.gz
+# uscan info: Upstream URL(+tag) to download is identified as    http://ftp.gnu.org/gnu/hello/hello-2.12.tar.gz
+# uscan info: Filename (filenamemangled) for downloaded file: hello-2.12.tar.gz
+# uscan: Newest version of hello on remote site is 2.12, specified download version is 2.12
+# uscan info: Downloading upstream package: hello-2.12.tar.gz
+# uscan info: Requesting URL:
+#    http://ftp.gnu.org/gnu/hello/hello-2.12.tar.gz
+# uscan info: Successfully downloaded upstream package: hello-2.12.tar.gz
+# uscan info: Start checking for common possible upstream OpenPGP signature files
+# uscan warn: Possible OpenPGP signature found at:
+#    http://ftp.gnu.org/gnu/hello/hello-2.12.tar.gz.sig
+#  * Add opts=pgpsigurlmangle=s/$/.sig/ or opts=pgpmode=auto to debian/watch
+#  * Add debian/upstream/signing-key.asc.
+#  See uscan(1) for more details
+# uscan info: End checking for common possible upstream OpenPGP signature files
+# uscan info: Missing OpenPGP signature.
+# uscan info: New orig.tar.* tarball version (oversionmangled): 2.12
+# uscan info: Launch mk-origtargz with options:
+#    --package hello --version 2.12 --compression default --directory ../build-dir --copyright-file debian/copyright ../build-dir/hello-2.12.tar.gz
+# Successfully symlinked ../build-dir/hello-2.12.tar.gz to ../build-dir/hello_2.12.orig.tar.gz.
+# uscan info: New orig.tar.* tarball version (after mk-origtargz): 2.12
+# uscan info: Scan finished
+
+
+
+# Check what was downloaded
+ls ../build-dir/
+# hello_2.12.1.orig.tar.gz -> hello-2.12.1.tar.gz
+# hello-2.12.1.tar.gz
+# hello_2.12.orig.tar.gz -> hello-2.12.tar.gz
+# hello-2.12.tar.gz
+```
+
+See `man uscan` and [debian/watch in debian wiki](https://wiki.debian.org/debian/watch) for details.
+
+### Testing and troubleshooting with 'uscan'
+
+To test the debian/watch implementation we can execute:
+
+```sh
+  uscan --no-download --verbose
+```
+
+Also, if 'uscan' is not working as expected, we can use '--debug' to see what it's fetching and what it's (not) matching:
+
+```sh
+uscan --no-download --verbose --debug
+```
+
+### Add a new upstream release to a repository using 'gbp' and 'uscan'
+
+'gbp import-orig' already includes an integration to use 'uscan' using the '--uscan' option.
+
+Example before and after adding 'debian/watch':
+
+```sh
+gbp clone \
+  --verbose \
+  --all \
+  --debian-branch=debian/latest \
+  --upstream-branch=upstream/latest \
+  git+ssh://apaz@git.launchpad.net/~apaz/+git/hello
+# ...
+
+cd hello/
+git checkout debian/latest
+
+
+gbp import-orig \
+  --verbose \
+  --uscan \
+  --debian-branch=debian/latest \
+  --upstream-branch=upstream/latest
+# gbp:debug: ['git', 'rev-parse', '--show-cdup']
+# gbp:debug: ['git', 'rev-parse', '--is-bare-repository']
+# gbp:debug: ['git', 'rev-parse', '--git-dir']
+# gbp:debug: ['git', 'for-each-ref', '--format=%(refname:short)', 'refs/heads/']
+# gbp:debug: ['git', 'show-ref', '--verify', 'refs/heads/upstream/latest']
+# gbp:debug: ['git', 'status', '--porcelain']
+# gbp:info: Launching uscan...
+# uscan warn: No watch file found
+# gbp:error: Uscan failed: No watch file found
+
+
+vi debian/watch
+# adding ...
+# version=4
+#
+# http://ftp.gnu.org/gnu/hello/hello-(.*).tar.gz
+git add .
+git commit -m "Add debian/watch"
+
+
+gbp dch \
+  --debian-branch=debian/latest \
+  --commit
+# gbp:info: Changelog last touched at '23d11f4a7b6e695bbdcacd7e2ffa8d5fdcf9957f'
+# gbp:info: Continuing from commit '23d11f4a7b6e695bbdcacd7e2ffa8d5fdcf9957f'
+# gbp:info: Changelog committed for version 2.12-0ubuntu2
+
+
+head -10 debian/changelog
+# hello (2.12-0ubuntu2) UNRELEASED; urgency=medium
+#
+#   * Add debian/watch
+#
+#  -- Aldo Paz <aldo.paz@noemail.org>  Fri, 24 Jun 2022 02:51:53 -0300
+#
+# hello (2.12-0ubuntu1) jammy; urgency=low
+#
+#   * Initial packaging.
+
+
+gbp import-orig \
+  --verbose \
+  --uscan \
+  --debian-branch=debian/latest \
+  --upstream-branch=upstream/latest
+# gbp:debug: ['git', 'rev-parse', '--show-cdup']
+# gbp:debug: ['git', 'rev-parse', '--is-bare-repository']
+# gbp:debug: ['git', 'rev-parse', '--git-dir']
+# gbp:debug: ['git', 'for-each-ref', '--format=%(refname:short)', 'refs/heads/']
+# gbp:debug: ['git', 'show-ref', '--verify', 'refs/heads/upstream/latest']
+# gbp:debug: ['git', 'status', '--porcelain']
+# gbp:info: Launching uscan...
+# uscan warn: Possible OpenPGP signature found at:
+#    http://ftp.gnu.org/gnu/hello/hello-2.12.1.tar.gz.sig
+#  * Add opts=pgpsigurlmangle=s/$/.sig/ or opts=pgpmode=auto to debian/watch
+#  * Add debian/upstream/signing-key.asc.
+#  See uscan(1) for more details
+# gbp:info: Using uscan downloaded tarball ../hello_2.12.1.orig.tar.gz
+# What is the upstream version? [2.12.1] 
+# gbp:debug: ['git', 'tag', '-l', 'upstream/2.12.1']
+# gbp:debug: tar ['-C', '../tmp8ckfk7lk', '-a', '-xf', '../hello_2.12.1.orig.tar.gz'] []
+# gbp:debug: Unpacked '../hello_2.12.1.orig.tar.gz' to '../tmp8ckfk7lk/hello-2.12.1'
+# gbp:info: <DebianUpstreamSource path='../hello_2.12.1.orig.tar.gz' signaturefile=None>
+# gbp:info: Importing '../hello_2.12.1.orig.tar.gz' to branch 'upstream/latest'...
+# gbp:info: Source package is hello
+# gbp:info: Upstream version is 2.12.1
+# gbp:debug: ['git', 'show-ref', '--verify', 'refs/heads/upstream/latest']
+# gbp:debug: ['git', 'rev-parse', '--quiet', '--verify', 'upstream/latest']
+# gbp:debug: ['git', 'add', '-f', '.']
+# gbp:debug: ['git', 'write-tree']
+# gbp:debug: ['git', 'rev-parse', '--quiet', '--verify', 'upstream/latest']
+# gbp:debug: ['git', 'commit-tree', 'ad5fc7c3062e8426b7936588e7a27d51ace0e508', '-p', '9d36488c717869697816fe3bb6d711f93aee0a78']
+# gbp:debug: ['git', 'update-ref', '-m', 'gbp: New upstream version 2.12.1', 'refs/heads/upstream/latest', 'a03d034d9f6e55762c88ab985c40af543b7c8b0a', '9d36488c717869697816fe3bb6d711f93aee0a78']
+# gbp:debug: ['git', 'tag', '-m', 'Upstream version 2.12.1', 'upstream/2.12.1', 'a03d034d9f6e55762c88ab985c40af543b7c8b0a']
+# gbp:debug: ['git', 'show-ref', '--verify', 'refs/heads/debian/latest']
+# gbp:debug: ['git', 'rev-parse', '--quiet', '--verify', 'debian/latest']
+# gbp:debug: ['git', 'show', '--pretty=medium', 'debian/latest:debian/source/format']
+# gbp:debug: 3.0 (quilt) package, replacing debian/ dir
+# gbp:info: Replacing upstream source on 'debian/latest'
+# gbp:debug: ['git', 'ls-tree', '-z', 'upstream/2.12.1^{tree}', '--']
+# gbp:debug: ['git', 'ls-tree', '-z', 'debian/latest^{tree}', '--']
+# gbp:debug: Using 8f561ccc30064b19e3bdca76e7f4e6baaed89516 as debian/ tree
+# gbp:debug: ['git', 'mktree', '-z']
+# gbp:debug: ['git', 'commit-tree', '74fe57634d12f5016f9c1d5dc5c428343891f330', '-p', 'debian/latest^{commit}', '-p', 'upstream/2.12.1^{commit}']
+# gbp:debug: ['git', 'update-ref', '-m', 'gbp: Updating debian/latest after import of upstream/2.12.1', 'refs/heads/debian/latest', '304224fa3b18e8f8409723dce0f7220aab8e4e8f']
+# gbp:debug: ['git', 'symbolic-ref', 'HEAD']
+# gbp:debug: ['git', 'show-ref', 'refs/heads/debian/latest']
+# gbp:debug: ['git', 'reset', '--quiet', '--hard', '304224fa3b18e8f8409723dce0f7220aab8e4e8f', '--']
+# gbp:debug: ['git', 'symbolic-ref', 'HEAD']
+# gbp:debug: ['git', 'show-ref', 'refs/heads/debian/latest']
+# gbp:debug: rm ['-rf', '../tmp8ckfk7lk'] []
+# gbp:info: Successfully imported version 2.12.1 of ../hello_2.12.1.orig.tar.gz
+
+
+ls ..
+# hello/
+# hello_2.12.1.orig.tar.gz -> hello-2.12.1.tar.gz
+# hello-2.12.1.tar.gz
+
+
+git tag
+# debian/2.12-0ubuntu2
+# upstream/2.12.1
+git tag -n
+# debian/2.12-0ubuntu2 hello Debian release 2.12-0ubuntu2
+# upstream/2.12.1 Upstream version 2.12.1
+
+
+git log --oneline --graph
+# *   304224f (HEAD -> debian/latest) Update upstream source from tag 'upstream/2.12.1'
+# |\  
+# | * a03d034 (tag: upstream/2.12.1, upstream/latest) New upstream version 2.12.1
+# * | ab58190 Update changelog for 2.12-0ubuntu2 release
+# * | 36281a5 Add debian/watch
+# * | 23d11f4 (origin/debian/latest, origin/HEAD) Initial packaging information
+# |/  
+# * 9d36488 (origin/upstream/latest) New upstream version 2.12
+
+
+# Push the tags
+gbp push \
+  --verbose \
+  --debian-branch=debian/latest \
+  --upstream-branch=
+# gbp:debug: ['git', 'rev-parse', '--show-cdup']
+# gbp:debug: ['git', 'rev-parse', '--is-bare-repository']
+# gbp:debug: ['git', 'rev-parse', '--git-dir']
+# gbp:debug: ['git', 'symbolic-ref', 'HEAD']
+# gbp:debug: ['git', 'show-ref', 'refs/heads/debian/latest']
+# gbp:debug: ['git', 'config', 'branch.debian/latest.remote']
+# gbp:debug: ['git', 'config', 'branch.debian/latest.merge']
+# gbp:debug: ['git', 'tag', '-l', 'debian/2.12-0ubuntu2']
+# gbp:debug: ['git', 'tag', '-l', 'upstream/2.12']
+# gbp:info: Pushing debian/2.12-0ubuntu2 to origin
+# gbp:debug: ['git', 'push', 'origin', 'tag', 'debian/2.12-0ubuntu2']
+```
+
+## Layouts for Git packaging repositories
+
+There are two different repository layouts, that can be used by package maintainers. Both layouts can be easily handled by 'git-buildpackage' (gbp).
+
+### DEP-14 style or prestine-tar layout
+
+Both the Upstream sources and the packaging files are stored in Git. This means the repository include the full source code of the upstream project.
+
+In this usage case, the upstream source code is imported under branch upstream, or even the original upstream GIT repository is used as base, with its branches like 'master'. When importing upstream releases, GIT changes will only show a single commit for the version, with added GIT tag.
+
+To have the full file tree, there also will be a 'debian/master' or 'master' branch, which includes the debian/ directory. Upstream changes are then merged to the Debian packaging branch.
+
+As a result, after a GIT clone, you can just start building, and all file changes can be diffed against GIT.
+
+As optional add-on you often find a 'pristine-tar' branch (this means the maintainers are using 'dbp' with 'prestine-tar'), this branch is used to store metadata, so the original tarball can be recreated from the GIT branches.
+
+### The overlay layout
+
+Aka. debian-only or simple layout.
+
+Only the packaging files (only the debian/ directory) is stored in Git, plus maybe some CI and metadata to build with. It is easier to handle in terms of repository sizes but you will need to take care of downloading and extracting the upstream's source code with tools like 'origtargz', 'uscan' or similars.
+
+In this mode you should find a very simple 'master' or 'debian/master' branch.
+
+
+## Configuring 'git-buildpackage' (gbp)
+
+The configuration can be done in several files:
+- '/etc/git-buildpackage/gbp.conf' - system-wide.
+- '~/.gbp.conf' - per user.
+- 'debian/gbp.conf' - per repository, distributable.
+- '.git/gbp.conf' - per repository, not distributed.
+
+If you need a skeleton, just copy '/etc/git-buildpackage/gbp.conf' to any of the above locations. The options are explained in `man 5 gbp.conf` too.
+
+### Common configuration for prestine-tar layout
+
+```ini
+[DEFAULT]
+builder = ...
+pristine-tar = true
+
+[buildpackage]
+sign-tags = true
+keyid = <key-id>
+export-dir = /tmp/build-area/
+notify = off
+
+[import-orig]
+filter-pristine-tar = true
+```
+
+### Common configuration for overlay layout
+
+Because the Git repository will not store the upstream sources in this layout, git-buildpackage needs to be told, where to find the tarball. This can be done by setting the tarball variable in '~/.gbp.conf' to the place, where you store the tarballs. The default value is ../tarballs/. Adjust the path to your tarball location.
+
+Common gbp.conf:
+
+```ini
+[DEFAULT]
+pristine-tar = false
+debian-branch = master
+verbose = true
+
+[buildpackage]
+overlay = true
+```
+
+~/.gbp.conf:
+
+```ini
+[buildpackage]
+tarball-dir = ~/.local/src/tarballs/
+```
+
+## Renaming the orig tarball properly using 'mk-origtargz'
+
+'mk-origtargz' renames the given file to match what is expected by 'dpkg-buildpackage', based on the source package name and version in 'debian/changelog'.
+
+It can convert zip to tar, optionally change the compression scheme and remove files according to 'Files-Excluded' and 'Files-Excluded-component' in 'debian/copyright'. The resulting file is placed in 'debian/../..'.
+
+Example:
+
+```sh
+# testing on empty directory
+ls
+mk-origtargz ../hello-2.12.tar.gz
+# mk-origtargz: error: cannot read debian/changelog: No such file or directory
+
+cd ../hello
+ls
+# debian
+head -10 debian/changelog
+# hello (2.12-0ubuntu1) jammy; urgency=low
+#
+#   * Initial packaging.
+#
+#  -- Aldo Paz <aldo.paz@noemail.org>  Wed, 08 Jun 2022 22:42:27 -0300
+#
+mk-origtargz ../hello-2.12.tar.gz
+# Successfully symlinked ../hello-2.12.tar.gz to ../hello_2.12.orig.tar.gz.
+ls ..
+# hello
+# hello_2.12.orig.tar.gz -> hello-2.12.tar.gz
+# hello-2.12.tar.gz
+# empty-dir
+```
+
+See `man mk-origtargz` for details.
+
+## Downloading the orig tarball of a Debian package from various sources using 'origtargz'
+
+'origtargz' is a tool that downloads the orig tarball of a Debian package (and also can unpack it) into the current directory, if it just contains a debian/ directory. The main use for 'origtargz' is with debian-dir-only repository checkouts (overlay layout), but it is useful as a general tarball download wrapper.
+
+NOTE: 'origtargz' is useful for downloading the current tarball. For Debian package repositories that keep the full upstream source, other tools should be used to upgrade the repository from the new tarball. See `man gbp-import-orig` for examples.
+
+The version number for the tarball to be downloaded is determined from 'debian/changelog'. It should be invoked from the top level directory of an unpacked Debian source package (where the debian/ directory is located).
+
+Various download locations are tried:
+
+- First, an existing file is looked for.
+- Directories given with '--path' are searched.
+- `pristine-tar` is tried.
+- `pristine-lfs` is tried.
+- `apt-get source` is tried when `apt-cache showsrc` reports a matching version.
+- Finally, `uscan --download --download-current-version` is tried.
+
+The common command used here is `origtargz -dt` that only downloads the orig tarball without unpacking and without downloading the '.dsc', '.diff.gz' and '.debian.tar.gz' components if `apt-get source` is executed.
+
+Example:
+
+```sh
+cd hello
+ls
+# debian
+
+origtargz -dt
+# E: You must put some 'deb-src' URIs in your sources.list
+# Trying uscan --download --download-current-version ...
+# uscan: Newest version of hello on remote site is 2.12, specified download version is 2.12
+# uscan warn: Possible OpenPGP signature found at:
+#    http://ftp.gnu.org/gnu/hello/hello-2.12.tar.gz.sig
+#  * Add opts=pgpsigurlmangle=s/$/.sig/ or opts=pgpmode=auto to debian/watch
+#  * Add debian/upstream/signing-key.asc.
+#  See uscan(1) for more details
+# Successfully renamed ../hello-2.12.tar.gz to ../hello_2.12.orig.tar.gz.
+
+ls
+# debian
+ls ..
+# hello  hello_2.12.orig.tar.gz
+```
+
+See `man origtargz` for details.
+
+## About Launchpad's builders
+
+Launchpad builds packages using a slightly modified version of 'buildd' called 'launchpad-buildd'. The corresponding project is located on [https://launchpad.net/launchpad-buildd](https://launchpad.net/launchpad-buildd).
+
+We can get the version of the packages running on Launchpad's builders, including 'launchpad-buildd', from the [buildd PPA](https://launchpad.net/~canonical-is-sa/+archive/ubuntu/buildd).
+
+[The Launchpad build farm](https://launchpad.net/builders) has the list of builders and their current status.
 
 ## How to set up 'pbuilder'
 
-'pbuilder' allows you to build packages locally on your machine. It serves a couple of purposes:
+'pbuilder' is a tool to do reproducible builds of a package in a clean and isolated environment. In other words, it allows you to build packages locally on your machine ensuring the build will work everywhere and that it's not dependent on something unusual in your own environment.
+
+It serves a couple of purposes:
 - The build will be done in a minimal and clean environment. This helps you make sure your builds succeed in a reproducible way, but without modifying your local system.
 - There is no need to install all necessary build dependencies locally.
 - You can set up multiple instances for various Ubuntu and Debian releases.
 
 ```sh
+sudo apt install pbuilder
+
 # pbuilder-dist <release> create
-pbuilder-dist hirsute create
+pbuilder-dist jammy create
 ```
 
 where \<release\> is for example xenial, zesty, artful or in the case of Debian maybe sid or buster.

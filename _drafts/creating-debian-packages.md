@@ -13,7 +13,7 @@
       - [What happened?](#what-happened)
     - [(4.3) Overriding 'dh_autoreconf', triying and failing again](#43-overriding-dh_autoreconf-triying-and-failing-again)
       - [Generated files in the parent directory (..)](#generated-files-in-the-parent-directory-)
-        - [The content of the binary package (.deb)](#the-content-of-the-binary-package-deb)
+        - [View the content of a generated Debian package](#view-the-content-of-a-generated-debian-package)
         - [The content of the .debian.tar.xz](#the-content-of-the-debiantarxz)
       - [Generated files in the build directory (.)](#generated-files-in-the-build-directory-)
       - [Example content in 'debian/hello.substvars'](#example-content-in-debianhellosubstvars)
@@ -23,7 +23,7 @@
       - [Issues at 'debian/changelog'](#issues-at-debianchangelog)
         - [The distribution value in a changelog entry is important](#the-distribution-value-in-a-changelog-entry-is-important)
         - [Ignoring lintian's 'initial-upload-closes-no-bugs' tag](#ignoring-lintians-initial-upload-closes-no-bugs-tag)
-        - [Adding new changelog entries](#adding-new-changelog-entries)
+        - [Modifying changelog entries with 'debchange' (dch)](#modifying-changelog-entries-with-debchange-dch)
       - [Issues at 'debian/copyright'](#issues-at-debiancopyright)
         - [License checkers](#license-checkers)
   - [(5) Package signing](#5-package-signing)
@@ -600,12 +600,15 @@ Binary-package related:
 - 'hello_2.12-1_amd64.deb' - The Debian binary package. See `man dh_builddeb`, `man dpkg-deb` and `man 5 deb` for details.
 - 'hello-dbgsym_2.12-1_amd64.ddeb' - The dbgsym package (aka. debug package). See `man dh_builddeb` and `man dh_strip` for details.
 
-##### The content of the binary package (.deb)
+##### View the content of a generated Debian package
 
-We can list the content of a .deb package with 'lesspipe':
+We can list the content of a .deb package with 'lesspipe', or of all .deb packages listed in the .changes file with 'debc':
 
 ```sh
 lesspipe ../hello_2.12-0ubuntu1_amd64.deb
+#...
+
+debc ../hello_2.12-0ubuntu1_amd64.changes
 #...
 ```
 
@@ -910,9 +913,15 @@ Because we don't plan to upload this new package to debian, we will ignore this 
 
 See [5.1. New packages in the Debian Developer's Reference](https://www.debian.org/doc/manuals/developers-reference/pkgs.html#new-packages) for details.
 
-##### Adding new changelog entries
+##### Modifying changelog entries with 'debchange' (dch)
 
-We can use `dch -i` to increment either the final component of the Debian release number. Or explicitly with `dch -v <version-revision>`. See `man dch` and [Chapter 8. Updating the package in the Debian New Maintainers' Guide](https://www.debian.org/doc/manuals/maint-guide/update.en.html) for details.
+- `dch -e` - Open 'debian/chengelog' with default editor.
+- `dch -a "Summary of a change"` - Add a new changelog entry to the current version of the package.
+- `dch -i "Summary of a change"` - Increment the version of the package (e.g. 0.13.0-0ubuntu5 => 0.13.0-0ubuntu6) adding a new release entry, and add a new changelog entry.
+- `dch -r ""` - Finalize the changelog for a release. Update the name, email, timestamp, and distribution of the last release entry.
+- `dch -r --distribution <CODENAME>` - Similar to `dch -r ""`, finalize the changelog for a release. If the distribution is set to UNRELEASED, change it to the distribution from the previous changelog entry (or another distribution as specified by --distribution). If there are no previous changelog entries and an explicit distribution has not been specified, unstable will be used.
+
+See `man dch` and [Chapter 8. Updating the package in the Debian New Maintainers' Guide](https://www.debian.org/doc/manuals/maint-guide/update.en.html) for details.
 
 #### Issues at 'debian/copyright'
 
@@ -1022,7 +1031,7 @@ If there isn't a primary key in your gnupg keychain, then 'debuild' by default e
 GPG stands for GNU Privacy Guard and it implements the OpenPGP standard which allows you to sign and encrypt messages and files. This is useful for a number of purposes. In our case it is important that you can sign files with your key so they can be identified as something that you worked on.
 
 ```sh
-gpg --quick-generate-key "Aldo Paz <estebanpazutn@gmail.com>" rsa4096 default never
+gpg --quick-generate-key "Aldo Paz <aldo.paz@noemail.org>" rsa4096 default never
 # ...
 
 gpg --list-keys --keyid-format short
@@ -1030,7 +1039,7 @@ gpg --list-keys --keyid-format short
 # -----------------------------
 # pub   rsa4096/17758171 2022-05-24 [SC]
 #       0837A887276EF500C9F3FC98AADB3BFE17758171
-# uid         [ultimate] Aldo Paz <estebanpazutn@gmail.com>
+# uid         [ultimate] Aldo Paz <aldo.paz@noemail.org>
 ```
 
 GPG will ask for a passphrase (a passphrase is just a password which is allowed to include spaces), choose a safe one.
