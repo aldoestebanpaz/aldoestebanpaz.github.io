@@ -10,6 +10,49 @@ Select-String or sls is the command that allows filteting. e.g.:
 git help -a | sls credential-
 ```
 
+### Get file size
+
+```powershell
+# size in bytes
+(Get-Item $file).Length
+# size in KB
+(Get-Item $file).length/1KB
+# size in MB
+(Get-Item $file).length/1MB
+# size in GB
+(Get-Item $file).length/1GB
+```
+
+### Calculate hash of files
+
+```powershell
+# default, SHA256
+Get-FileHash $file | Select-Object Hash
+# SHA384 -- Accepted values: SHA1, SHA256, SHA384, SHA512, MD5
+Get-FileHash $file -Algorithm SHA384 | Select-Object Hash
+```
+
+### Calculate hash of string
+
+```powershell
+$stream = [System.IO.MemoryStream]::new()
+$streamWriter = [System.IO.StreamWriter]::new($stream)
+$streamWriter.write("Hello world")
+$streamWriter.Flush()
+$stream.Position = 0
+Get-FileHash -InputStream $stream | Select-Object Hash
+```
+
+### Check hash of streams
+
+```powershell
+$webClient = [System.Net.WebClient]::new()
+$fileUrl = 'https://github.com/PowerShell/PowerShell/releases/[...].deb'
+$publishedHash = '8E28E54D601F0751922DE24632C1E716B4684876255CF82304A9B19E89A9CCAC'
+$FileHash = Get-FileHash -InputStream ($webClient.OpenRead($fileUrl))
+$FileHash.Hash -eq $publishedHash
+```
+
 ## Analysis
 
 ### Getting information about the Shell
