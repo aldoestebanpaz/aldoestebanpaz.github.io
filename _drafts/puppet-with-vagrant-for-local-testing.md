@@ -1,5 +1,31 @@
 # Puppet with Vagrant for local testing
 
+- [Puppet with Vagrant for local testing](#puppet-with-vagrant-for-local-testing)
+  - [Installation](#installation)
+    - [Install vagrant](#install-vagrant)
+    - [Copy the files for VM creation and provisioning](#copy-the-files-for-vm-creation-and-provisioning)
+  - [Managing the VM with Vagrant](#managing-the-vm-with-vagrant)
+    - [Start the VM and opening the SSH session](#start-the-vm-and-opening-the-ssh-session)
+    - [Stop the VM](#stop-the-vm)
+    - [Delete the VM](#delete-the-vm)
+  - [Running a simple manifest](#running-a-simple-manifest)
+  - [Running a custom environment](#running-a-custom-environment)
+    - [Running a custom environment with the 'roles and profiles' method](#running-a-custom-environment-with-the-roles-and-profiles-method)
+  - [Puppet conventions](#puppet-conventions)
+    - [The confdir](#the-confdir)
+    - [Settings for specific Sections in puppet.conf](#settings-for-specific-sections-in-puppetconf)
+    - [The default environmentpath](#the-default-environmentpath)
+    - [Manifest directory behavior](#manifest-directory-behavior)
+    - [The modulepath and the base modulepath](#the-modulepath-and-the-base-modulepath)
+  - [Troubleshooting Puppet](#troubleshooting-puppet)
+    - [The module repository](#the-module-repository)
+    - [Get configuration values in the node](#get-configuration-values-in-the-node)
+    - [Get fact values in the node](#get-fact-values-in-the-node)
+    - [Override facts using 'Environment facts'](#override-facts-using-environment-facts)
+    - [See what the modulepath is for an environment](#see-what-the-modulepath-is-for-an-environment)
+    - [Check hiera data values](#check-hiera-data-values)
+  - [Project files](#project-files)
+
 ## Installation
 
 Open a administrative bash shell and follow the steps bellow.
