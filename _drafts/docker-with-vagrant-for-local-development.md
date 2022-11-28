@@ -8,6 +8,7 @@
     - [Start the VM and opening the SSH session](#start-the-vm-and-opening-the-ssh-session)
     - [Stop the VM](#stop-the-vm)
     - [Delete the VM](#delete-the-vm)
+    - [Add a shared folder for a Windows host](#add-a-shared-folder-for-a-windows-host)
   - [Running a simple container](#running-a-simple-container)
   - [Docker conventions](#docker-conventions)
   - [Troubleshooting Docker](#troubleshooting-docker)
@@ -63,6 +64,56 @@ vagrant halt
 
 ```sh
 vagrant destroy
+```
+
+### Add a shared folder for a Windows host
+
+**Create the folder as a sibling of Vagrantfile**
+
+```sh
+mkdir shared
+```
+
+**Add the following into the 'Vagrant.configure' block**
+
+```ruby
+# NFS requires a host-only network to be created.
+# We need to add a host-only network to the machine (with either DHCP or a static IP) for NFS to work.
+config.vm.network "private_network", ip: "192.168.33.10"
+
+config.vm.synced_folder '.', '/vagrant', disabled: true
+config.vm.synced_folder "./shared", "/var/shared",
+  type:"nfs",
+  create: true,
+  # group:'nginx', owner:'magento', # no supported by NFS
+  mount_options: %w{rw,async,fsc,nolock,vers=3,udp,rsize=32768,wsize=32768,hard,noatime,actimeo=2}
+```
+
+**Releoad the VM with the modifications**
+
+You can make `vagrant reload --no-provision` or the following:
+
+```sh
+vagrant halt
+vagrant up --no-provision
+```
+
+Note I use '--no-provision' to avoid re-provisioning, that is to avoid re-executing the provision.sh script.
+
+**Connect to the guest (the VM)**
+
+```sh
+# Connect to the guest
+vagrant ssh
+```
+
+**NFS service and access in the guest (the VM)**
+
+```sh
+# Enable the NFS service
+sudo systemctl enable nfs
+# Enable serving files from NFS mounts:
+sudo setsebool -P httpd_use_nfs 1
 ```
 
 ## Running a simple container
