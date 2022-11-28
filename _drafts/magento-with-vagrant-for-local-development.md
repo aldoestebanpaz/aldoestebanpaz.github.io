@@ -15,7 +15,7 @@ NOTE: I'll be using the bash shell provided by my installation of git on Windows
 ```sh
 # VirtualBox Guest Additions up to date (winnfsd requires vbguest 0.29.0)
 vagrant plugin install vagrant-vbguest --plugin-version=0.29.0
-# NFS  support for Windows
+# NFS support for Windows
 vagrant plugin install vagrant-winnfsd
 # Manages the 'hosts' file on guest machines (and optionally the host).
 vagrant plugin install vagrant-hostmanager
