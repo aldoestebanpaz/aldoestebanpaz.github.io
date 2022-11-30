@@ -9,8 +9,9 @@
     - [Stop the VM](#stop-the-vm)
     - [Delete the VM](#delete-the-vm)
     - [Add a shared folder for a Windows host](#add-a-shared-folder-for-a-windows-host)
-  - [Running a simple container](#running-a-simple-container)
-  - [Docker conventions](#docker-conventions)
+  - [Get images from another registry](#get-images-from-another-registry)
+    - [Option 1 - Login into a secured registry](#option-1---login-into-a-secured-registry)
+    - [Option 2 - Add an insecure registry](#option-2---add-an-insecure-registry)
   - [Troubleshooting Docker](#troubleshooting-docker)
   - [Project files](#project-files)
 
@@ -116,17 +117,48 @@ sudo systemctl enable nfs
 sudo setsebool -P httpd_use_nfs 1
 ```
 
-## Running a simple container
+## Get images from another registry
 
-TODO
+By default, all images will be pulled from  the 'Docker Hub' registry. If you want to download an images from other locations, for example artifactory, then you have to follow one of the following options.
 
-## Docker conventions
+### Option 1 - Login into a secured registry
 
-TODO
+First, you have to login into the registry.
+
+Example:
+
+```sh
+sudo docker login artifactory.dev.local
+# username: cmuser
+# password: Palindrome10
+```
+
+Now you can pull images using this registry.
+
+In this example I have my images in the 'docker-local' location:
+
+```sh
+sudo docker pull artifactory.dev.local/docker-local/myproduct/origin/master/myproduct:latest
+sudo docker pull artifactory.dev.local/docker-local/common/nginx:v1.0.3.BUILD-1
+```
+
+### Option 2 - Add an insecure registry
+
+For insecure sources, you have to add the registry into the file daemon.json.
+
+```sh
+sudo tee /etc/docker/daemon.json > /dev/null <<EOT
+{ "insecure-registries" : ["myartifactory.local:8081"] }
+EOT
+```
 
 ## Troubleshooting Docker
 
-TODO
+**Interactive shell into the running container**
+
+```sh
+sudo docker exec -it <CONTAINER> bash
+```
 
 ## Project files
 
@@ -172,7 +204,7 @@ sudo systemctl start docker
 
 # Configure your custom repositories to download images
 # sudo tee /etc/docker/daemon.json > /dev/null <<EOT
-# { "insecure-registries" : ["myartifactory.local:8081"] }
+# { "insecure-registries" : ["artifactory.dev.local:8081"] }
 # EOT
 
 # Install docker-compose

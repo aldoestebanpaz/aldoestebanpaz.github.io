@@ -18,6 +18,12 @@ An image will be listed more than once if it has multiple repository names or ta
 docker image inspect <IMAGE_NAME> | less
 ```
 
+Example, the following command get all the tags of an image that already has a container create:
+
+```sh
+docker image inspect --format={{.RepoTags}} $(docker inspect --format='{{.Config.Image}}' myproj)
+```
+
 ### Build a docker image
 
 ```sh
@@ -57,21 +63,104 @@ Containers without '--network' flag are attached automatically to the default br
 docker run ... -name <CONTAINER_NAME> <IMAGE_NAME>[:TAG]
 ```
 
+##### Detached mode
+
+To run in detached mode, that means in background without blocking the command line, use `-d`:
+
+```sh
+docker run ... -d -name <CONTAINER_NAME> <IMAGE_NAME>[:TAG]
+```
+
+##### Pull mage from another repository
+
+**1 - Login**
+
+NOTE: You have to make this step for the first time only.
+
+```sh
+sudo docker login myartifactory.local
+```
+
+**2 - Pull or directly pull-and-run the images**
+
+```sh
+sudo docker pull myartifactory.local/docker-repo/sampleproject/origin/development/SampleProject:latest
+# or
+docker run ... -d --name myproj myartifactory.local/docker-repo/sampleproject/origin/development/SampleProject:latest
+```
+
+##### A most common example of running a container
+
+The following command:
+- Runs in detached mode (-d),
+- maps the port of the host 8083 to the port 8080 of the container (-p),
+- limits the ram usage to 1024m (-m),
+- mounts the directory /opt/myproduct/config and /opt/myproduct/logs of the host, to /config and /logs in the container (-v),
+- sets an environment variable (-e),
+- configures it to restart automatically (--restart=always),
+- uses the latest version of the container.
+
+```sh
+docker run -d -p 8083:8080 -m 1024m -v /opt/myproduct/config:/config -v /opt/myproduct/logs:/logs -e ENVIRONMENT=Staging
+--restart=always --name <CONTAINER_NAME> <IMAGE_NAME>:latest
+```
+
 #### Create and run it automatically attached to a specific network
 
 This command attach the container to another network different than bridge.
 
 ```sh
-docker run ... --network <NETWORK_NAME> -name <CONTAINER_NAME> <IMAGE_NAME>[:TAG]
+docker run ... -d --network <NETWORK_NAME> -name <CONTAINER_NAME> <IMAGE_NAME>[:TAG]
 ```
 
-#### Create a container and attach it to multiple networks
+#### Create a container and attach it to an existing network
 
 ```sh
 docker create ...
 # repeat
 docker network connect <NETWORK_NAME> <CONTAINER_ID>
 docker start <CONTAINER_ID>
+```
+
+#### Create a network and attach containers
+
+Create the internal network:
+
+```sh
+docker network create --internal sample-network
+```
+
+Create the containers. Note it is not possible to do `docker run` because this command tries to create the network whenever it is executed:
+
+```sh
+# 1
+docker create \
+  ... \
+  --name myproj \
+  myartifactory.local/docker-repo/sampleproject/origin/development/SampleProject:latest
+
+# 2
+docker create \
+  ... \
+  -p 80:80 \
+  -p 443:443 \
+  -v /opt/nginx:/etc/nginx:ro \
+  --name proxy \
+  nginx
+```
+
+Connect the containers to the existing network:
+
+```sh
+sudo docker network connect sample-network myproj
+sudo docker network connect sample-network proxy
+```
+
+Start the containers:
+
+```sh
+sudo docker start myproj
+sudo docker start proxy
 ```
 
 ### Restart a container
@@ -323,6 +412,18 @@ docker exec -it <CONTAINER_ID> bash
 docker exec -it <CONTAINER_ID> /bin/bash
 ```
 
+### Run a container just to get an interactive shell
+
+The following example shows how to run a temporary container just to get an interactive shell into it. Once the user exits, the container will be deleted automatically:
+
+```sh
+sudo docker run --rm \
+  -it \
+  -v ~/bkp:/etc/nginx \
+  nginx:latest \
+  /bin/bash
+```
+
 ### Copy content from a container to the host
 
 ```sh
@@ -330,6 +431,12 @@ docker cp <CONTAINER_ID>:<FILE_LOCATION_IN_CONTAINER> ./<FILE_NAME>
 ```
 
 ### Logs
+
+To print logs:
+
+```sh
+docker logs <CONTAINER_ID>
+```
 
 Keep listening log entries:
 

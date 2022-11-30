@@ -9,12 +9,20 @@
     - [Stop the VM](#stop-the-vm)
     - [Delete the VM](#delete-the-vm)
     - [Add a shared folder for a Windows host](#add-a-shared-folder-for-a-windows-host)
+  - [Running puppet code from command line](#running-puppet-code-from-command-line)
   - [Running a simple manifest](#running-a-simple-manifest)
   - [Running a custom environment](#running-a-custom-environment)
     - [Running a custom environment with the 'roles and profiles' method](#running-a-custom-environment-with-the-roles-and-profiles-method)
+  - [Managing encrypted data in hiera](#managing-encrypted-data-in-hiera)
+  - [Using modules](#using-modules)
+    - [Understanding the module search path](#understanding-the-module-search-path)
+    - [Installing modules using 'puppet module install'](#installing-modules-using-puppet-module-install)
+    - [Installing modules using 'r10k'](#installing-modules-using-r10k)
+    - [Using the module](#using-the-module)
   - [Puppet conventions](#puppet-conventions)
     - [The confdir](#the-confdir)
     - [Settings for specific Sections in puppet.conf](#settings-for-specific-sections-in-puppetconf)
+    - [The confdir](#the-confdir-1)
     - [The default environmentpath](#the-default-environmentpath)
     - [Manifest directory behavior](#manifest-directory-behavior)
     - [The modulepath and the base modulepath](#the-modulepath-and-the-base-modulepath)
@@ -25,6 +33,11 @@
     - [Override facts using 'Environment facts'](#override-facts-using-environment-facts)
     - [See what the modulepath is for an environment](#see-what-the-modulepath-is-for-an-environment)
     - [Check hiera data values](#check-hiera-data-values)
+    - [Troubleshooting containers created by 'puppetlabs-docker'](#troubleshooting-containers-created-by-puppetlabs-docker)
+      - [How to find the service](#how-to-find-the-service)
+      - [How to see the logs of the service running the container](#how-to-see-the-logs-of-the-service-running-the-container)
+      - [Managing the service](#managing-the-service)
+        - [Deleting the service and the container manually](#deleting-the-service-and-the-container-manually)
   - [Project files](#project-files)
 
 ## Installation
@@ -129,6 +142,28 @@ sudo systemctl enable nfs
 sudo setsebool -P httpd_use_nfs 1
 ```
 
+## Running puppet code from command line
+
+The following command prints the current 'environment' and 'environmentpath', that wey we know the default location where a simple 'puppet apply' will try to load manifests and environment configuration.
+
+```sh
+puppet apply -e 'notice("environment: ${settings::environmentpath}, environment: ${environment}")'
+
+# result using non-root user:
+#   Notice: Scope(Class[main]): environment: /home/vagrant/.puppetlabs/etc/code/environments, environment: production
+
+# result using root user:
+#   Notice: Scope(Class[main]): environment: /etc/puppetlabs/code/environments, environment: production
+```
+
+Additionally you could change it and provide your custom locations for the environment to use. NOTE that for this example the directories ./mycustomenv should exists, otherwise you will receive an error:
+
+```sh
+puppet apply -e 'notice("environment: ${settings::environmentpath}, environment: ${environment}")' --environment mycustomenv --environmentpath ./
+# result:
+#   Notice: Scope(Class[main]): environment: /home/vagrant, environment: mycustomenv
+```
+
 ## Running a simple manifest
 
 ```sh
@@ -224,6 +259,8 @@ The 'role' module is the module that stores different manifests, classes that we
 The 'profile' module stores manifests declaring classes for multiple tasks that can being used by the roles.
 
 See [The roles and profiles method](https://puppet.com/docs/pe/2021.0/osp/the_roles_and_profiles_method.html) for details.
+
+Projects with this structure can be assigned in the puppet server (the master) in Puppet Enterprise to a group of nodes, and configure the specific class to invoke in them. See [Grouping and classifying nodes](https://puppet.com/docs/pe/2021.2/grouping_and_classifying_nodes.html) for details.
 
 **1 - Create a temp environments with your example project**
 
@@ -323,24 +360,256 @@ puppet apply -e "include role::main" \
 --environmentpath ./example-envs
 ```
 
+## Managing encrypted data in hiera
+
+**Generate the keys**
+
+```sh
+# Create the directory tree
+mkdir -p /etc/puppetlabs/code/keys/
+
+# Generate the keys
+/opt/puppetlabs/puppet/bin/eyaml createkeys \
+   --pkcs7-private-key=/etc/puppetlabs/code/keys/private_key.pkcs7.pem \
+   --pkcs7-public-key=/etc/puppetlabs/code/keys/public_key.pkcs7.pem
+
+# Make sure the permissions on the keys are set securely, but that the Puppet Server has access to them.
+cd /var/lib/
+chown -R puppet puppet
+chmod 500 puppet
+chmod 400 puppet/*.pem
+```
+
+**Modify hiera.yaml to load .eyaml files**
+
+Add a new section in 'hierarchy' with the 'eyaml_lookup_key' backend and the location of the keys.
+
+Example:
+
+```ruby
+---
+version: 5
+defaults:
+  datadir: "hieradata"
+  data_hash: yaml_data
+
+hierarchy:
+  - name: "environment"
+    path: "environments/%{::environment}.yaml"
+
+  - name: "environment-encrypted-data"
+    lookup_key: eyaml_lookup_key
+    path: "environments/%{::environment}.eyaml"
+    options:
+      pkcs7_private_key: /etc/puppetlabs/code/keys/private_key.pkcs7.pem
+      pkcs7_public_key:  /etc/puppetlabs/code/keys/public_key.pkcs7.pem
+```
+
+**Use eyaml tool to manage your secrets**
+
+Use 'eyaml encrypt' to encrypt your strings. Use the output of this command (the encrypted value looks similar to this 'ENC[PKCS7,MII...N5]') and put it into the corresponding variable of the .eyaml file.
+
+Example:
+
+```sh
+/opt/puppetlabs/puppet/bin/eyaml encrypt \
+--pkcs7-public-key=/etc/puppetlabs/code/keys/public_key.pkcs7.pem \
+-s 'MyAuthPassw0rd'
+```
+
+Use 'eyaml decrypt' to decrypt.
+
+```sh
+# decrypt a string
+/opt/puppetlabs/puppet/bin/eyaml decrypt \
+--pkcs7-public-key=/etc/puppetlabs/code/keys/public_key.pkcs7.pem \
+--pkcs7-private-key=/etc/puppetlabs/code/keys/private_key.pkcs7.pem \
+-s 'ENC[PKCS7,MII...7zw==]'
+
+# decrypt a .eyaml file
+/opt/puppetlabs/puppet/bin/eyaml decrypt \
+--pkcs7-public-key=/etc/puppetlabs/code/keys/public_key.pkcs7.pem \
+--pkcs7-private-key=/etc/puppetlabs/code/keys/private_key.pkcs7.pem \
+-e ./example-envs/mycustomenv2/hieradata/environments/mycustomenv2.eyaml
+```
+
+Finally you can use 'eyaml edit' to edit an already existing .eyaml file directly. This tool decrypts the data while editing, and encrypt it again when you exit from the editor.
+
+Example:
+
+```sh
+/opt/puppetlabs/puppet/bin/eyaml edit \
+--pkcs7-public-key=/etc/puppetlabs/code/keys/public_key.pkcs7.pem \
+--pkcs7-private-key=/etc/puppetlabs/code/keys/private_key.pkcs7.pem \
+./example-envs/mycustomenv2/hieradata/environments/mycustomenv2.eyaml
+```
+
+## Using modules
+
+### Understanding the module search path
+
+In this section I want to show a tricky thing.
+
+In the documentation about environments in puppet, it says that 'basemodulepath' contains a list of global directories with modules that will be used by all environments. It also says that the 'modules' directory of the active environment will have priority over any global directories.
+
+The final search path for modules is stored in 'modulepath' and, as explained above, the default value is '\<ACTIVE-ENVIRONMENT-MODULES-DIR\>:$basemodulepath'. However, you can change this by putting a value for 'modulepath' in environment.conf.
+
+The following example shows the default and calculated value of 'modulepath' of a custom environment:
+
+```sh
+puppet config print | grep module
+#   ...
+#   basemodulepath = /home/vagrant/.puppetlabs/etc/code/modules:/opt/puppetlabs/puppet/modules
+#   modulepath = /opt/puppetlabs/puppet/modules
+#   vendormoduledir = /opt/puppetlabs/puppet/vendor_modules
+#   ...
+
+puppet apply -e 'notice("environment: ${settings::environmentpath}, environment: ${environment}, modulepath: ${settings::modulepath}")' --environment temp --environmentpath ./
+# result:
+#   Notice: Scope(Class[main]): environment: /home/vagrant, environment: temp, modulepath: /home/vagrant/temp/modules:/home/vagrant/.puppetlabs/etc/code/modules:/opt/puppetlabs/puppet/modules
+```
+
+The value of 'modulepath' returned by `puppet config print` is keeps if the directory of the default environment doesn't exist:
+
+```sh
+puppet apply -e 'notice("environment: ${settings::environmentpath}, environment: ${environment}, modulepath: ${settings::modulepath}")'
+# result:
+#   Notice: Scope(Class[main]): environment: /home/vagrant/.puppetlabs/etc/code/environments, environment: production, modulepath: /opt/puppetlabs/puppet/modules
+```
+
+However, if I create the directory, then it shows a calculated value:
+
+```sh
+mkdir -p /home/vagrant/.puppetlabs/etc/code/environments/production
+
+puppet apply -e 'notice("environment: ${settings::environmentpath}, environment: ${environment}, modulepath: ${settings::modulepath}")'
+# result:
+#   Notice: Scope(Class[main]): environment: /home/vagrant/.puppetlabs/etc/code/environments, environment: production, modulepath: /home/vagrant/.puppetlabs/etc/code/environments/production/modules:/home/vagrant/.puppetlabs/etc/code/modules:/opt/puppetlabs/puppet/modules
+```
+
+NOTE: The directory specified in 'vendormoduledir' contains vendored modules. These modules will be used by all environments like those in the basemodulepath. The only difference is that modules in the 'basemodulepath' are pluginsynced, while vendored modules are not.
+
+### Installing modules using 'puppet module install'
+
+By default, this command installs modules into the first directory of 'modulepath', which is '\<environmentpath\>/\<environment\>/modules'.
+
+For example, to install the puppetlabs-stdlib module, run:
+
+```sh
+puppet module install puppetlabs-stdlib
+```
+
+The following example shows, how to install the module into a custom environment:
+
+```sh
+puppet module install puppetlabs-stdlib --environment temp --environmentpath ./
+# result:
+#   Notice: Preparing to install into /home/vagrant/temp/modules ...
+#   Notice: Created target directory /home/vagrant/temp/modules
+#   Notice: Downloading from https://forgeapi.puppet.com ...
+#   Notice: Installing -- do not interrupt ...
+#   /home/vagrant/temp/modules
+#   └── puppetlabs-stdlib (v8.5.0)
+```
+
+Also, you could download a module from another repository, instead of Puppet Forge. In the following example I'm using a repo of my artifactory installation:
+
+```sh
+# format:
+#   puppet module install --module_repository <artifactory-host>/artifactory/api/puppet/<repository-key> <module-name>
+
+puppet module install \
+--module_repository https://artifactory.dev.local/artifactory/api/puppet/Puppet-virtual \
+--environment temp --environmentpath ./ \
+puppetlabs-java --version 3.3.0
+```
+
+### Installing modules using 'r10k'
+
+'r10k' is a Puppet environment and module deployment tool. From version 5.4.5, you can use 'r10k' to fetch Puppet environments and modules for deployment.
+
+Example:
+
+```sh
+cat <<EOT > ./temp/Puppetfile
+mod 'puppetlabs-docker', '3.5.0'
+EOT
+
+cd ./temp
+/opt/puppetlabs/puppet/bin/r10k puppetfile install
+cd ..
+```
+
+To configure r10k to fetch modules from Artifactory, add the following to your r10k.yaml file:
+
+```
+forge:
+   baseurl: 'http://<ARTIFACTORY_HOST_NAME>:<ARTIFACTORY_PORT>/artifactory/api/puppet/<REPO_KEY>'
+```
+
+For example:
+
+```sh
+cat <<EOT > ./temp/r10k.yaml
+forge:
+  baseurl: 'https://artifactory.dev.local/artifactory/api/puppet/Puppet-virtual'
+EOT
+```
+
+Now to fetch and install the Puppet modules from Artifactory, run the command specifying the config file:
+
+```sh
+cd ./temp
+/opt/puppetlabs/puppet/bin/r10k puppetfile install -c ./r10k.yaml
+cd ..
+```
+
+### Using the module
+
+After installing the module, you should be able to use it in the manifest of the environment or directly with 'puppet apply'.
+
+In this example I will use a class from the module 'puppetlabs-java' that allows me to install the JRE in this machine:
+
+```sh
+java -version
+# result:
+#   -bash: java: command not found
+
+puppet apply -e 'class { "java": }' --environment temp --environmentpath ./
+
+java -version
+# result:
+#   openjdk version "1.8.0_352"
+```
+
 ## Puppet conventions
 
 ### The confdir
 
-The puppet confdir depends on user that executes puppet command. That's why puppet cofiguration will differ for different users.
+The puppet 'confdir' depends on user that executes puppet command. That's why puppet cofiguration will differ for different users.
 
-Puppet's confdir is the main directory for the Puppet configuration. It contains configuration files and the SSL data.
+```sh
+puppet config print confdir
 
-The confdir is located in one of the following locations:
+# result as root user:
+#   /etc/puppetlabs/puppet
+
+# result as non-root user:
+#   /home/vagrant/.puppetlabs/etc/puppet
+```
+
+Puppet's 'confdir' is the main directory for the Puppet configuration. It contains configuration files and the SSL data.
+
+The 'confdir' is located in one of the following locations:
 - *nix root users: /etc/puppetlabs/puppet
 - Non-root users: ~/.puppetlabs/etc/puppet
 - Windows: %PROGRAMDATA%\PuppetLabs\puppet\etc (usually C:\ProgramData\PuppetLabs\puppet\etc)
 
-When Puppet is running as root, a Windows user with administrator privileges, or the puppet user, it uses a system-wide confdir. When running as a non-root user, it uses a confdir in that user's home directory.
+When Puppet is running as root, a Windows user with administrator privileges, or the puppet user, it uses a system-wide 'confdir'. When running as a non-root user, it uses a 'confdir' in that user's home directory.
 
-When running Puppet commands and services as root or puppet, usually you want to use the system codedir. To use the same codedir as the Puppet agent or the primary Puppet server, run admin commands with sudo.
+NOTE: When running Puppet commands and services as root or puppet, usually you want to use the system 'codedir'. To use the same 'codedir' as the Puppet agent or the primary Puppet server, run admin commands with sudo.
 
-Puppet's confdir can't be set in the puppet.conf, because Puppet needs the confdir to locate that config file.
+Puppet's 'confdir' can't be set in the puppet.conf, because Puppet needs the confdir to locate that config file.
 
 See [Config directory (confdir)](https://puppet.com/docs/puppet/7/dirs_confdir.html) for details.
 
@@ -362,15 +631,33 @@ As usual, the other sections override the main section if they contain a setting
 
 See [Checking the values of settings](https://puppet.com/docs/puppet/7/config_print.html) for details.
 
+### The confdir
+
+The puppet 'codedir' depends on user that executes puppet command. That's why puppet environments will differ for different users.
+
+```sh
+puppet config print codedir
+
+# result as root user:
+#   /etc/puppetlabs/code
+
+# result as non-root user:
+#   /home/vagrant/.puppetlabs/etc/code
+```
+
 ### The default environmentpath
 
-The environmentpath setting is the list of directories where Puppet looks for environments. The default value for environmentpath is $codedir/environments. If you have more than one directory, separate them by colons and put them in order of precedence.
+The 'environmentpath' setting is the list of directories where Puppet looks for environments. The default value for 'environmentpath' is '$codedir/environments'. If you have more than one directory, separate them by colons and put them in order of precedence.
 
-In this example, temp_environments is searched before environments: $codedir/temp_environments:$codedir/environments
+In the following value, 'temp_environments' is searched before 'environments' folder in $codedir:
+
+```
+$codedir/temp_environments:$codedir/environments
+```
 
 If environments with the same name exist in both paths, Puppet uses the first environment with that name that it encounters.
 
-Put the environmentpath setting in the main section of the puppet.conf file.
+Put the 'environmentpath' setting in the \[main\] section of the puppet.conf file.
 
 See [Creating environments](https://puppet.com/docs/puppet/7/environments_creating.html) for details.
 
@@ -507,6 +794,71 @@ The following example checks the value of 'profile::printinfo::message'.
 
 ```sh
 puppet apply -e "notice(lookup(profile::printinfo::message))" --environment mycustomenv2 --environmentpath ./example-envs
+```
+
+### Troubleshooting containers created by 'puppetlabs-docker'
+
+'puppetlabs-docker' manage containers through systemd-based services and does not create them in detached mode. The main feature of these services is that they take care of monitoring the container and recreating or restarting them accordingly.
+
+#### How to find the service
+
+Use 'systemctl' to find the service created for the docker container specified in puppet.
+
+```sh
+systemctl list-unit-files | grep myproj
+# result:
+#   docker-myproj.service
+
+systemctl show docker-myproj | grep FragmentPath
+# resutl:
+#   FragmentPath=/etc/systemd/system/docker-myproj.service
+```
+
+#### How to see the logs of the service running the container
+
+Use 'journalctl' to see the logs.
+
+```sh
+journalctl -e -u docker-myproj
+```
+
+The following are other interesting options for journalctl:
+
+```
+-u (is short for --unit) specifies the name of the unit in which you're interested
+-b (is short for --boot) restricts the output to only the current boot so that you don't see lots of older messages
+-e will start the log at the end removing the need to scroll
+-f will follow (print) updates to the log
+-l don't truncate entries with ellipses (...)
+--no-pager will print full log, so you wont have to scroll
+```
+
+#### Managing the service
+
+Use 'systemctl' to manage the service.
+
+```sh
+sudo systemctl status docker-myproj
+
+sudo systemctl start docker-myproj
+
+sudo systemctl stop docker-myproj
+```
+
+##### Deleting the service and the container manually
+
+If you want to manually delete the service and the container created by Puppet, then you have to use the following commands:
+
+```sh
+# delete the service
+systemctl stop docker-myproj.service
+systemctl disable docker-myproj.service
+rm /etc/systemd/system/docker-myproj.service
+systemctl daemon-reload
+systemctl reset-failed
+
+# delete the container
+docker rm -f myproj
 ```
 
 ## Project files
