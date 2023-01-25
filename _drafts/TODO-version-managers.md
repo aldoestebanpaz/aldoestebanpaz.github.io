@@ -20,7 +20,7 @@ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
 # or
 wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
 ```
-2. Close your current terminal, open a new terminal, and run `command -v nvm` to check if the shell can find nvm. Alternatively, you can run `bash: source ~/.bashrc` for the different shells on the command line.
+2. Close your current terminal, open a new terminal, and run `command -v nvm` to check if the shell can find nvm. Alternatively, if using bash, you can run `source ~/.bashrc` for the different shells on the command line.
 
 **What the script did?**
 

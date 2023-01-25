@@ -23,7 +23,7 @@ Ref: https://github.com/nvm-sh/nvm#installing-and-updating
 # Install the latest LTS version
 nvm install --lts
 # Use the latest LTS version
-nvm use --lts
+nvm use lts/*
 # Attempt to upgrade to the latest working `npm` on the current node version
 nvm install-latest-npm
 ```

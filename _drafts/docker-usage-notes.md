@@ -300,7 +300,7 @@ docker rm -f <CONTAINER_ID>
 docker rm -f $(docker ps -a -q)
 ```
 
-### Running a container and delete it automatically after it exits
+### Run a container and delete it automatically after it exits
 
 Normally, a Docker container persists after it has exited, which allows you to run the container again, inspect its filesystem, and so on. However, sometimes you want to run a container and delete it immediately after it exits. Docker provides the --rm command line option for this purpose:
 
@@ -308,7 +308,15 @@ Normally, a Docker container persists after it has exited, which allows you to r
 docker run --rm <IMAGE_NAME>
 ```
 
-### Execute command in container
+### Run a container with bash shell and delete it automatically after it exits
+
+This command is usefull for exploring the content of a docker image without starting the default entrypoint.
+
+```sh
+docker run --rm -ti --entrypoint=bash <IMAGE_NAME>
+```
+
+### Execute command in running container
 
 ```sh
 docker exec <CONTAINER_ID> <COMMAND>
