@@ -3,6 +3,8 @@
 
 ## Installation
 
+### Linux
+
 **1 - Install / Update NVM (Node Version Manager)**
 
 Install or update nvm. You should run the install script using one of the following commands:
@@ -32,7 +34,32 @@ NOTE: If `nvm install-latest-npm` throws error, then close and reopen the termin
 
 Otherwise you could choose an specific version from `nvm ls-remote --lts` and install it with, for example for 'v16.14.0', `nvm install 16.14.0`.
 
-**Install / Update the Angular CLI**
+### Windows
+
+**1 - Install / Update NVM for Windows**
+
+NOTE: Before to install NVM for Windows, uninstall any existing versions of Node.js (otherwise you'll have conflicting versions). Delete any existing Node.js installation directories (e.g., `%ProgramFiles%\nodejs`) that might remain. NVM's generated symlink will not overwrite an existing (even empty) installation directory.
+
+Download and run the latest installer from https://github.com/coreybutler/nvm/releases. If NVM for Windows doesn't appear to work immediately after installation, restart the terminal/powershell (not the whole computer).
+
+NOTE: To upgrade NVM for Windows, download and run the new installer. It will safely overwrite the files it needs to update without touching your node.js installations. **Make sure you use the same installation and symlink folder**. If you originally installed to the default locations, you just need to click "next" on each window until it finishes.
+
+**Install and start using the latest LTS version of NodeJS**
+
+Run the following commands in an Admin shell. **You'll need to start powershell or Command Prompt as Administrator to use NVM for Windows**.
+
+```sh
+# Install the latest LTS version
+nvm install lts
+
+# Use the latest LTS version
+nvm use lts
+
+# Attempt to upgrade to the latest working `npm` on the current node version
+nvm install-latest-npm
+```
+
+## Install / Update the Angular CLI
 
 NOTE: If the command throws a 'not found' message, then close and reopen the terminal and try again.
 
@@ -64,6 +91,9 @@ The `--open` (or just `-o`) option automatically opens your browser to http://lo
 
 ## Concepts
 
+**Pipes**
+
+Pipes are simple functions to use in template expressions throughout the application to accept an input value and return a transformed value. For example, you could use a pipe to show a date as "April 15, 1988" rather than the raw string format.
 
 **Components**
 
