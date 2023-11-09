@@ -2,6 +2,7 @@
 
 - [Cmake usage](#cmake-usage)
   - [Build](#build)
+  - [Build types](#build-types)
   - [Cmake packages](#cmake-packages)
     - [Module mode](#module-mode)
     - [Config mode](#config-mode)
@@ -9,12 +10,23 @@
       - [Example](#example)
     - [Using pkg-config packages](#using-pkg-config-packages)
   - [Troubleshooting](#troubleshooting)
+    - [Stop a CMake run in an specific point without an error](#stop-a-cmake-run-in-an-specific-point-without-an-error)
+      - [Using return()](#using-return)
+      - [Kill the process abruptly](#kill-the-process-abruptly)
     - [List variables using cmake command](#list-variables-using-cmake-command)
     - [List all calculated variables](#list-all-calculated-variables)
+    - [Printing variables with cmake code](#printing-variables-with-cmake-code)
+    - [Tracing a build](#tracing-a-build)
+      - [Trace lines in your CMakeLists.txt](#trace-lines-in-your-cmakeliststxt)
+      - [Complete trace](#complete-trace)
+      - [Trace and expanded variables](#trace-and-expanded-variables)
+      - [Trace and debug information](#trace-and-debug-information)
+      - [Get find\_\* call lookups](#get-find_-call-lookups)
   - [References](#references)
     - [Cmake variables](#cmake-variables)
     - [Common cmake commands](#common-cmake-commands)
     - [Common modules](#common-modules)
+    - [Guides and tutorials](#guides-and-tutorials)
 
 ## Build
 
@@ -40,6 +52,10 @@ make
 # as root:
 make install
 ```
+
+## Build types
+
+You can run CMake with "CMAKE_BUILD_TYPE=Debug" for a build with full debugging, or "RelWithDebInfo" for a release build with some extra debug info. You can also use "Release" for an optimized release build, or "MinSizeRel" for a minimum size release (which I’ve never used).
 
 ## Cmake packages
 
@@ -173,6 +189,47 @@ TODO
 
 ## Troubleshooting
 
+### Stop a CMake run in an specific point without an error
+
+#### Using return()
+
+If your CMakeLists.txt hierarchy is fairly shallow, you can call [return()](https://cmake.org/cmake/help/latest/command/return.html) once or twice (depending on if you called add_subdirectory() or if you're in a macro/function) to return to the calling file or function and exit CMake processing.
+
+Example:
+
+```cmake
+# ...
+
+message(STATUS "BREAKPOINT ---------------------------------------------")
+return()
+
+# ...
+```
+
+#### Kill the process abruptly
+
+If your project hierarchy is more complex, and you want to exit your CMakes from an arbitrary location, there is no native CMake command to support that. However, you could roll your own (admittedly, a bit scary) solution to terminate cmake.
+
+If you include this in your top-level CMake file, you can call this from anywhere in your CMakes to exit silently.
+
+WARNING: This will terminate ALL currently running CMake processes, not just your current process. Because you are forcing the process the terminate, your CMake files/cache may be left in a weird state.
+
+```cmake
+function(exit_cmake)
+  if(UNIX)
+    set(KILL_COMMAND "killall")
+    execute_process(COMMAND ${KILL_COMMAND} -9 cmake
+      WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+    )
+  else()
+    set(KILL_COMMAND "taskkill")
+    execute_process(COMMAND ${KILL_COMMAND} /IM cmake.exe /F
+      WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+    )
+  endif()
+endfunction()
+```
+
 ### List variables using cmake command
 
 The command `cmake -L[A][H]` lists non-advanced cached variables.
@@ -192,6 +249,105 @@ cd build
 # Build with: cmake ..
 less CMakeCache.txt
 ```
+
+### Printing variables with cmake code
+
+**Option 1: the time honored method of print statements looks like this**
+
+```cmake
+message(STATUS "MY_VARIABLE=${MY_VARIABLE}")
+```
+
+**Option 2: a built in module makes this even easier**
+
+```cmake
+include(CMakePrintHelpers)
+cmake_print_variables(MY_VARIABLE)
+```
+
+**Option 3: printing properties**
+
+Instead of getting the properties one by one of each target (or other item with properties, such as SOURCES, DIRECTORIES, TESTS, or CACHE_ENTRIES - global properties seem to be missing for some reason), you can simply list them and get them printed directly.
+
+NOTE: You can't actually access SOURCES, since it conflictes with the SOURCES keyword in the function.
+
+```cmake
+cmake_print_properties(
+    TARGETS my_target
+    PROPERTIES POSITION_INDEPENDENT_CODE
+)
+```
+
+### Tracing a build
+
+#### Trace lines in your CMakeLists.txt
+
+With `--trace-source="filename"` every line run in the file that you give will be echoed to the screen when it is run, letting you follow exactly what is happening.
+
+```cmake
+cd <PROJECTDIR>
+
+mkdir build
+
+cmake \
+  -S . \
+  -B build \
+  --trace-source=CMakeLists.txt
+```
+
+#### Complete trace
+
+With `--trace` every line run, not just those from your CMakeLists.txt but all included files too, will be echoed to the screen.
+
+```cmake
+cd <PROJECTDIR>
+
+mkdir build
+
+cmake \
+  -S . \
+  -B build \
+  --trace
+```
+
+#### Trace and expanded variables
+
+Add `--trace-expand` to print expanded variables.
+
+```cmake
+cd <PROJECTDIR>
+
+mkdir build
+
+cmake \
+  -S . \
+  -B build \
+  --trace \ # or --trace-source=CMakeLists.txt
+  --trace-expand
+```
+
+#### Trace and debug information
+
+Add `--debug-output` to print debug information.
+
+```cmake
+cd <PROJECTDIR>
+
+mkdir build
+
+cmake \
+  -S . \
+  -B build \
+  --trace \ # or --trace-source=CMakeLists.txt
+  # --trace-expand \ # trace with expanded variables
+  --debug-output
+```
+
+#### Get find_* call lookups
+
+You can print extra find_* call information during the cmake run to standard error by adding `--debug-find` (CMake 3.17+).
+
+Alternatively, [CMAKE_FIND_DEBUG_MODE](https://cmake.org/cmake/help/latest/variable/CMAKE_FIND_DEBUG_MODE.html) can be set around sections of your CMakeLists.txt to limit debug printing to a specific region.
 
 ## References
 
@@ -214,3 +370,8 @@ less CMakeCache.txt
 ### Common modules
 
 - [GNUInstallDirs](https://cmake.org/cmake/help/latest/module/GNUInstallDirs.html).
+
+### Guides and tutorials
+
+- [HSF CMake tutorial - More Modern CMake](https://hsf-training.github.io/hsf-training-cmake-webpage/).
+- [Modern CMake](https://cliutils.gitlab.io/modern-cmake/).

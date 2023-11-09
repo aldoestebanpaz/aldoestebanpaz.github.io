@@ -91,9 +91,9 @@ The `--open` (or just `-o`) option automatically opens your browser to http://lo
 
 ## Concepts
 
-**Pipes**
+**Directives**
 
-Pipes are simple functions to use in template expressions throughout the application to accept an input value and return a transformed value. For example, you could use a pipe to show a date as "April 15, 1988" rather than the raw string format.
+TODO
 
 **Components**
 
@@ -104,6 +104,20 @@ A Component is a class that contains application data and logic, and is associat
 A .html file that combines ordinary HTML with 'Angular directives' and 'binding markup' that allow Angular to modify the HTML before rendering it for display.
 
 The metadata for a component class associates it with a template that defines a view.
+
+**Interpolation and template expressions**
+
+Interpolation allows you to incorporate calculated strings into the text between HTML element tags and within attribute assignments. Template expressions are what you use to calculate those strings.
+
+Interpolation refers to embedding expressions into marked up text. By default, interpolation uses as its delimiter the double curly braces, {{ and }}.
+
+**Data binding**
+
+TODO
+
+**Pipes**
+
+Pipes are simple functions to use in template expressions throughout the application to accept an input value and return a transformed value. For example, you could use a pipe to show a date as "April 15, 1988" rather than the raw string format.
 
 **Services**
 
