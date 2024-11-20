@@ -10,6 +10,8 @@
       - [Example](#example)
     - [Using pkg-config packages](#using-pkg-config-packages)
   - [Troubleshooting](#troubleshooting)
+    - [How to find necessary packages to use with pkg\_](#how-to-find-necessary-packages-to-use-with-pkg_)
+    - [How to find necessary packages to use with pkg\_check\_modules()](#how-to-find-necessary-packages-to-use-with-pkg_check_modules)
     - [Stop a CMake run in an specific point without an error](#stop-a-cmake-run-in-an-specific-point-without-an-error)
       - [Using return()](#using-return)
       - [Kill the process abruptly](#kill-the-process-abruptly)
@@ -188,6 +190,83 @@ Finally the modules mentioned in the `include` command are provided by the [lxqt
 TODO
 
 ## Troubleshooting
+
+### How to find necessary packages to use with pkg_
+
+Example, the following code searches cmake config files for Qt5 development:
+
+```cmake
+# ...
+
+set(QT_MAJOR_VERSION 5)
+
+# ...
+
+find_package(Qt${QT_MAJOR_VERSION} 5.15.0 CONFIG REQUIRED Core DBus Gui Qml Quick LinguistTools Test QuickTest)
+```
+
+To find the necessary package I can use the following commands on apt systems:
+
+```sh
+apt-file search --regexp '.*Qt5Core.*\.cmake'
+#   ...
+#   qtbase5-dev: /usr/lib/x86_64-linux-gnu/cmake/Qt5Core/Qt5CoreConfig.cmake
+#   ...
+#   qtbase5-gles-dev: /usr/lib/x86_64-linux-gnu/cmake/Qt5Core/Qt5CoreConfig.cmake
+#   ...
+
+apt-file search --regexp '.*Qt5DBus.*\.cmake'
+#   ...
+#   qtbase5-dev: /usr/lib/x86_64-linux-gnu/cmake/Qt5DBus/Qt5DBusConfig.cmake
+#   ...
+#   qtbase5-gles-dev: /usr/lib/x86_64-linux-gnu/cmake/Qt5DBus/Qt5DBusConfig.cmake
+#   ...
+
+apt-file search --regexp '.*Qt5QuickTest.*\.cmake'
+#   ...
+#   qtdeclarative5-dev: /usr/lib/x86_64-linux-gnu/cmake/Qt5QuickTest/Qt5QuickTestConfig.cmake
+#   ...
+
+apt-file search Qt5GuiConfig.cmake
+#   qtbase5-dev: /usr/lib/x86_64-linux-gnu/cmake/Qt5Gui/Qt5GuiConfig.cmake
+#   qtbase5-gles-dev: /usr/lib/x86_64-linux-gnu/cmake/Qt5Gui/Qt5GuiConfig.cmake
+
+apt-file search Qt5QmlConfig.cmake
+#   qtdeclarative5-dev: /usr/lib/x86_64-linux-gnu/cmake/Qt5Qml/Qt5QmlConfig.cmake
+
+apt-file search Qt5QuickConfig.cmake
+#   qtdeclarative5-dev: /usr/lib/x86_64-linux-gnu/cmake/Qt5Quick/Qt5QuickConfig.cmake
+
+apt-file search Qt5LinguistToolsConfig.cmake
+#   qttools5-dev: /usr/lib/x86_64-linux-gnu/cmake/Qt5LinguistTools/Qt5LinguistToolsConfig.cmake
+
+apt-file search Qt5TestConfig.cmake
+#   qtbase5-dev: /usr/lib/x86_64-linux-gnu/cmake/Qt5Test/Qt5TestConfig.cmake
+#   qtbase5-gles-dev: /usr/lib/x86_64-linux-gnu/cmake/Qt5Test/Qt5TestConfig.cmake
+
+apt-file search Qt5QuickTestConfig.cmake
+#   qtdeclarative5-dev: /usr/lib/x86_64-linux-gnu/cmake/Qt5QuickTest/Qt5QuickTestConfig.cmake
+```
+
+### How to find necessary packages to use with pkg_check_modules()
+
+Example, the following code enables pkg-config (`FindPkgConfig.cmake` is already included with cmake) and parses `xau.pc` and `xcb.pc`:
+
+```cmake
+find_package(PkgConfig)
+pkg_check_modules(LIBXAU REQUIRED "xau")
+pkg_check_modules(PKG_XCB xcb)
+```
+
+To find the necessary package I can use the following commands on apt systems:
+
+```sh
+apt-file search xau.pc
+#   libxau-dev: /usr/lib/x86_64-linux-gnu/pkgconfig/xau.pc
+apt-file search xcb.pc
+#   ...
+#   libxcb1-dev: /usr/lib/x86_64-linux-gnu/pkgconfig/xcb.pc
+```
 
 ### Stop a CMake run in an specific point without an error
 
